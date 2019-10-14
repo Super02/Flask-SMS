@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+	rel="stylesheet" 
+	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+	crossorigin="anonymous">
+	<title>SMS Result</title>
+</head>
+<body>
+	<div class="container">
+		<h1>Message Status</h1>
+		<table class="table table-striped">
+			<tbody>
+				<tr>
+					<td>From Number</td>
+					<td>+{{ msg.from_number }}</td>
+				</tr>
+				<tr>
+					<td>To Number</td>
+					<td>+{{ msg.to_number }}</td>
+				</tr>
+				<tr>
+					<td>Status</td>
+					<td>{{ msg.message_state }}</td>
+				</tr>
+				<tr>
+					<td>Code</td>
+					<td>{{ msg.error_code }}</td>
+				</tr>
+				<tr>
+					<td>UUID(s)</td>
+					<td>{{ msg.message_uuid }}</td>
+				</tr>
+				<tr>
+					<td>Total Price</td>
+					<td>{{ msg.total_amount }}$</td>
+				</tr>
+			</tbody>
+		</table>
+		<!--<p>
+			From Number: +{{ msg.from_number }}<br/>
+			To Number: +{{ msg.to_number }}<br/>
+			Total Price: {{ msg.total_amount }}$<br/>
+			Message UUID: {{ msg.api_id }}<br/>
+			Status code: {{ msg.error_code }}<br/>
+			Status: {{ msg.message_state }}
+		</p>-->
+		<a href="/"><button class="btn btn-primary">Return</button></a>
+	</div>
+</body>
+</html>
