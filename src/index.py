@@ -9,7 +9,7 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 load_dotenv()
 
-USERS = json.load(open('src/users.json', 'r'))
+USERS = json.load(open('users.json', 'r'))
 
 plivo_client = plivo.RestClient(getenv('auth_id'), getenv('auth_token'))
 
