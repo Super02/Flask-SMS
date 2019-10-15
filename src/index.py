@@ -9,7 +9,7 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 load_dotenv()
 
-USERS = json.load(open('users.json', 'r'))
+USERS = json.load(open('src/users.json', 'r'))
 
 plivo_client = plivo.RestClient(getenv('auth_id'), getenv('auth_token'))
 
@@ -52,4 +52,5 @@ def root():
 		
 	return render_template("index.html")
 
-app.run(port=80, host="0.0.0.0", debug=False)
+if __name__ == "__main__":
+	app.run(port=80, host="0.0.0.0", debug=False)
