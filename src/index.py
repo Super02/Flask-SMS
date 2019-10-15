@@ -9,8 +9,6 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 load_dotenv()
 
-USERS = json.load(open('users.json', 'r'))
-
 plivo_client = plivo.RestClient(getenv('auth_id'), getenv('auth_token'))
 
 def fix_number(raw):
@@ -20,10 +18,8 @@ def fix_number(raw):
 
 @auth.verify_password
 def verify_password(username, password):
-	if (username, password):
-		for user in USERS.items():
-			if user == (username, password):
-				return True
+	if (username, password) == ("admin", getenv("admin_pass")):
+		return True
 
 	return False
 
