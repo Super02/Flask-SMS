@@ -23,7 +23,7 @@ def verify_password(username, password):
 def fix_number(raw: str):
 	raw = raw.replace(" ", "")
 	raw = raw.replace("+45", "")
-	return "{}".format(raw)
+	return "45{}".format(raw)
 
 def send_sms(src:str, dst:str, text:str, key=None):
 	if not key is None:
@@ -36,7 +36,7 @@ def send_sms(src:str, dst:str, text:str, key=None):
 		if len(text) == 0 or len(text.encode()) > 140:
 			return jsonify({"Error": "Invalid message length"}), 400
 		try:
-			message =client.send_message({'from': fix_number(src),'to': "45"+fix_number(dst),'text': text,})
+			message =client.send_message({'from': fix_number(src),'to': fix_number(dst),'text': text,})
 			if key is not None:
 				redis.lrem("sms_keys", 0, key)
 		except Exception: #FIX LIGE OOF
@@ -44,9 +44,10 @@ def send_sms(src:str, dst:str, text:str, key=None):
 		redis.lpush("log", f"{src} => {dst} | Key: {key} | Text: {text}")
 		return render_template("result.html", msg=message, admin=(key is None))
 	else:
-		message =client.send_message({'from': fix_number(src),'to': "45"+fix_number(dst),'text': text,})
+		message =client.send_message({'from': fix_number(src),'to': fix_number(dst),'text': text,})
 		if(message["messages"][0]["status"] == "0"):
 			redis.lpush("log", "Message sent \nFrom: {}\nTo: {}\nText: {}".format(fix_number(src),fix_number(dst),text))
+			print(message["messages"])
 		else:
 			redis.lpush("log", f"Message failed with error: {message ['messages'][0]['error-text']}")
 			print(f"Message failed with error: {message ['messages'][0]['error-text']}")
@@ -73,7 +74,7 @@ def admin_panel():
 
 		try:
 			if len(rcv) != 3:
-				message =client.send_message({'from': "69696969",'to': "45"+fix_number(rcv),'text': text,})
+				message =client.send_message({'from': "69696969",'to': fix_number(rcv),'text': text,})
 			
 			redis.lpush("sms_keys", key)
 			
@@ -83,6 +84,7 @@ def admin_panel():
 		except:
 			return jsonify({"Error": "Unknown Error!"})
 
+		
 		redis.lpush("log", f"Generated key for {rcv} ({key})")
 		return render_template("result.html", msg=message_data, admin=True)
 
