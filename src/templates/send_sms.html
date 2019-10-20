@@ -20,6 +20,12 @@
 				<label>Destination: </label>
 				<input type="text" class="form-control" name="dst" placeholder="12 34 56 78" />
 			</div>
+			{% if not admin %}
+			<div class="form-group">
+				<label>Key: </label>
+				<input type="text" class="form-control" name="key" placeholder="Insert key" />
+			</div>
+			{% endif %}
 			<div class="form-group">
 				<label>Message Body: </label>
 				<textarea name="text" class="form-control"></textarea>

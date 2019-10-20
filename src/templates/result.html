@@ -29,6 +29,7 @@
 					<td>Code</td>
 					<td>{{ msg.error_code }}</td>
 				</tr>
+				{% if admin %}
 				<tr>
 					<td>UUID(s)</td>
 					<td>{{ msg.message_uuid }}</td>
@@ -37,17 +38,10 @@
 					<td>Total Price</td>
 					<td>{{ msg.total_amount }}$</td>
 				</tr>
+				{% endif %}
 			</tbody>
 		</table>
-		<!--<p>
-			From Number: +{{ msg.from_number }}<br/>
-			To Number: +{{ msg.to_number }}<br/>
-			Total Price: {{ msg.total_amount }}$<br/>
-			Message UUID: {{ msg.api_id }}<br/>
-			Status code: {{ msg.error_code }}<br/>
-			Status: {{ msg.message_state }}
-		</p>-->
-		<a href="/"><button class="btn btn-primary">Return</button></a>
+		<button class="btn btn-primary" onclick="window.location.href=window.location.href">Return</button>
 	</div>
 </body>
 </html>
