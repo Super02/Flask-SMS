@@ -8,14 +8,14 @@ from redis import Redis
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
-secret = getenv("secret")
-key = getenv("key")
+secret = "94LMmzLUGFsbKyTr"
+key = "16fecadf"
 client = nexmo.Client(key=key, secret=secret)
-redis = Redis().from_url("redis://SG-SMS-26975.servers.mongodirector.com:6379")
+redis = Redis().from_url("redis://h:p39e65e7459f3b7aab4ef0dbbfe27f1849467120a8e75cad91643ab080dafb23c@ec2-34-246-123-190.eu-west-1.compute.amazonaws.com:26389")
 
 @auth.verify_password
 def verify_password(username, password):
-	if (username, password) == ("admin", getenv("admin_pass")):
+	if (username, password) == ("admin", "6969"):
 		return True
 
 	return False
