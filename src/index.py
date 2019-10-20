@@ -8,19 +8,21 @@ from redis import Redis
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
-secret = "94LMmzLUGFsbKyTr"
-key = "16fecadf"
+secret = getenv("secret")
+key = getenv("key")
 client = nexmo.Client(key=key, secret=secret)
 redis = Redis().from_url(getenv("REDIS_URL"))
 
 @auth.verify_password
 def verify_password(username, password):
-	if (username, password) == ("admin", "6969"):
+	if (username, password) == ("admin", getenv("admin_pass")):
 		return True
 
 	return False
 
 def fix_number(raw: str):
+	if(raw==None):
+		return None
 	raw = raw.replace(" ", "")
 	raw = raw.replace("+45", "")
 	return "45{}".format(raw)
@@ -39,6 +41,12 @@ def send_sms(src:str, dst:str, text:str, key=None):
 			message =client.send_message({'from': fix_number(src),'to': fix_number(dst),'text': text,})
 			if key is not None:
 				redis.lrem("sms_keys", 0, key)
+			if(message["messages"][0]["status"] == "0"):
+				redis.lpush("log", "Message sent \nFrom: {}\nTo: {}\nText: {}".format(fix_number(src),fix_number(dst),text))
+				print(message["messages"])
+			else:
+				redis.lpush("log", f"Message failed with error: {message ['messages'][0]['error-text']}")
+				print(f"Message failed with error: {message ['messages'][0]['error-text']}")
 		except Exception: #FIX LIGE OOF
 			return jsonify({"Error": "Source and Destination cannot be the same"}), 400
 		redis.lpush("log", f"{src} => {dst} | Key: {key} | Text: {text}")
@@ -71,14 +79,14 @@ def admin_panel():
 		while key.encode() in keys:
 			key = generate_random_key(4)
 			
-		if (len(rcv) != 11 or len(rcv) != 11) and len(rcv) != 3:
+		if (len(rcv) != 10 or len(rcv) != 10) and len(rcv) != 3:
 			return jsonify({"Error": "Phone number isn't 8 numbers long."}), 400
 
 		text = "Your one time key is: {}".format(key)
 
 		try:
 			if len(rcv) != 3:
-				message =client.send_message({'from': "69696969",'to': fix_number(rcv),'text': text,})
+				message =client.send_message({'from': "4569696969",'to': rcv,'text': text,})
 			
 			redis.lpush("sms_keys", key)
 			
@@ -90,7 +98,7 @@ def admin_panel():
 
 		
 		redis.lpush("log", f"Generated key for {rcv} ({key})")
-		return render_template("result.html", msg=message_data, admin=True)
+		return render_template("result.html", msg=message, admin=True)
 
 	return render_template("admin.html")
 
@@ -100,7 +108,7 @@ def admin_panel():
 def admin_sms():
 	if request.method == "POST":
 		src = request.form.get('src')
-		dst = fix_number(request.form.get('dst'))
+		dst = request.form.get('dst')
 		text = request.form.get('text')
 
 		send_sms(src, dst, text, None)
@@ -108,14 +116,13 @@ def admin_sms():
 	return render_template("send_sms.html", admin=True)
 @app.route('/sms', methods=['GET', 'POST'])
 def sms():
-	if request.method == "GET":
-		src = fix_number(request.form.get('src'))
-		dst = fix_number(request.form.get('dst'))
+	if request.method == "POST":
+		src = request.form.get('src')
+		dst = request.form.get('dst')
 		text = request.form.get('text')
 		key = request.form.get('key')
 
 		send_sms(src, dst, text, key)
-
 	return render_template("send_sms.html", admin=False)
 
 if __name__ == '__main__':
