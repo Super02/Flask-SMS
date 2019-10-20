@@ -1,4 +1,3 @@
-from flask import Flask
 from flask import Flask, request, render_template, jsonify
 from flask_httpauth import HTTPBasicAuth
 from twilio.rest import Client 
