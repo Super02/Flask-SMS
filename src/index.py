@@ -37,7 +37,7 @@ def send_sms(src:str, dst:str, text:str, key=None):
 		if len(text) == 0 or len(text.encode()) > 140:
 			return jsonify({"Error": "Invalid message length"}), 400
 		try:
-			message = client.messages.create(body=text, from_="a" + src.replace(" ", "")[3:], to=fix_number(dst))
+			message = client.messages.create(body=text, from_="a31688852", to=fix_number(dst))
 			print(message.sid)
 			if key is not None:
 				redis.lrem("sms_keys", 0, key)
@@ -56,7 +56,7 @@ def generate_random_key(length: int):
 @auth.login_required
 def admin_sms():
 	if request.method == "POST":
-		src = fix_number(request.form.get('src'))
+		src = request.form.get('src')
 		dst = fix_number(request.form.get('dst'))
 		text = request.form.get('text')
 
