@@ -11,7 +11,7 @@ auth = HTTPBasicAuth()
 secret = getenv("secret")
 key = getenv("key")
 client = nexmo.Client(key=key, secret=secret)
-redis = Redis().from_url("redis://SG-SMS-26975.servers.mongodirector.com:6379")
+redis = Redis().from_url("redis://h:p39e65e7459f3b7aab4ef0dbbfe27f1849467120a8e75cad91643ab080dafb23c@ec2-34-246-123-190.eu-west-1.compute.amazonaws.com:26389")
 
 @auth.verify_password
 def verify_password(username, password):
@@ -55,6 +55,10 @@ def send_sms(src:str, dst:str, text:str, key=None):
 
 def generate_random_key(length: int):
 	return "".join(choice(digits) for _ in range(length))
+
+@app.route('/')
+def home():
+	return "Please send an sms using https://sms-spoofing.herokuapp.com/sms"
 
 @app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
