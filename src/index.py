@@ -11,7 +11,7 @@ auth = HTTPBasicAuth()
 secret = getenv("secret")
 key = getenv("key")
 client = nexmo.Client(key=key, secret=secret)
-redis = Redis().from_url("redis://h:p39e65e7459f3b7aab4ef0dbbfe27f1849467120a8e75cad91643ab080dafb23c@ec2-34-246-123-190.eu-west-1.compute.amazonaws.com:26389")
+redis = Redis().from_url("REDACTED")
 
 @auth.verify_password
 def verify_password(username, password):
