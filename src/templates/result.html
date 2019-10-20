@@ -15,15 +15,15 @@
 			<tbody>
 				<tr>
 					<td>From Number</td>
-					<td>+{{ msg.from_number }}</td>
+					<td>+{{ msg.from_ }}</td>
 				</tr>
 				<tr>
 					<td>To Number</td>
-					<td>+{{ msg.to_number }}</td>
+					<td>+{{ msg.to }}</td>
 				</tr>
 				<tr>
 					<td>Status</td>
-					<td>{{ msg.message_state }}</td>
+					<td>{{ msg.status }}</td>
 				</tr>
 				<tr>
 					<td>Code</td>
@@ -32,11 +32,11 @@
 				{% if admin %}
 				<tr>
 					<td>UUID(s)</td>
-					<td>{{ msg.message_uuid }}</td>
+					<td>{{ msg.sid }}</td>
 				</tr>
 				<tr>
 					<td>Total Price</td>
-					<td>{{ msg.total_amount }}$</td>
+					<td>{{ msg.price }}$</td>
 				</tr>
 				{% endif %}
 			</tbody>

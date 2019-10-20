@@ -6,13 +6,14 @@ from twilio.base.exceptions import TwilioRestException
 from random import choice
 from string import digits
 from os import getenv
+from redis import Redis
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 account_sid = getenv("account_sid")
 auth_token = getenv('auth_token')
 client = Client(account_sid, auth_token)
-keys=["1234"]
+redis = Redis().from_url(getenv("REDIS_URL"))
 
 @auth.verify_password
 def verify_password(username, password):
@@ -25,21 +26,27 @@ def fix_number(raw: str):
 	raw = raw.replace(" ", "")
 	raw = raw.replace("+45", "")
 	return "+45{}".format(raw)
-def check_key(key: str):
-	return False
-	if(key in keys): return True
 
-def send_sms(src:str, dst:str, text:str, key):
-	if(key != None):
-		if(check_key(key) != True): return "Error" 
-		else: keys.remove(key)
-	message = client.messages \
-	.create(
-		body=text,
-		from_="a" + src.replace(" ", "")[3:],
-		to=fix_number(dst)
-	)
-	print(message.sid)
+def send_sms(src:str, dst:str, text:str, key=None):
+	if not key is None:
+		key = key.encode()
+		keys = redis.lrange("sms_keys", 0, -1)
+		if key not in keys:
+			return jsonify({"Error": "Invalid key"}), 400
+		if len(src) != 11 or len(dst) != 11:
+			return jsonify({"Error": "Source or Destination numbers are not 8 characters long"}), 400
+		if len(text) == 0 or len(text.encode()) > 140:
+			return jsonify({"Error": "Invalid message length"}), 400
+		try:
+			message = client.messages.create(body=text, from_="a" + src.replace(" ", "")[3:], to=fix_number(dst))
+			print(message.sid)
+			if key is not None:
+				redis.lrem("sms_keys", 0, key)
+		except TwilioRestException:
+			return jsonify({"Error": "Source and Destination cannot be the same"}), 400
+		redis.lpush("log", f"{src} => {dst} | Key: {key} | Text: {text}")
+		return render_template("result.html", msg=message, admin=(key is None))
+
 
 def generate_random_key(length: int):
 	return "".join(choice(digits) for _ in range(length))
