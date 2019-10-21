@@ -7,3 +7,12 @@ body {
 .title-text {
     text-align: center;
 }
+
+.card {
+    line-height: 400%;
+}
+
+.container {
+    align-content: center;
+    background-color: #2c3e50;
+}

@@ -6,6 +6,7 @@ from string import digits
 from os import getenv
 from redis import Redis
 from datetime import datetime
+import time
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -13,21 +14,29 @@ secret = getenv("secret")
 key = getenv("key")
 client = nexmo.Client(key=key, secret=secret)
 redis = Redis().from_url(getenv("REDIS_URL"))
+laststamp=[time.time(),time.time(),time.time()]
 
 @auth.verify_password
 def verify_password(username, password):
-	sendLog("Someone succesfuly logged into admin panel.")
+	global laststamp
+	if(laststamp[0]+2<time.time()):
+		laststamp[0]=time.time()
+		sendLog("Someone is logging into admin panel.")
 	if (username, password) == ("admin", getenv("admin_pass")):
-		sendLog("Someone succesfuly logged into admin panel.")
+		if(laststamp[1]+2<time.time()):
+			laststamp[1]=time.time()
+			sendLog("Someone succesfuly logged into admin panel.")
 		return True
 	else:
-		sendLog("Someone failed to log into admin panel.")
+		if(laststamp[2]+2<time.time()):
+			laststamp[2]=time.time()
+			sendLog("Someone failed to log into admin panel.")
 
 	return False
 
 def sendLog(logdata:str):
 	dt = datetime.now()
-	redis.lpush("log", "Timestamp: " + dt + " | " + logdata)
+	redis.lpush("log", "Browser: " + request.headers.get('User-Agent') + " | " + "IP: " + request.remote_addr + " | " + "Timestamp: " + str(dt) + " | " + logdata)
 
 
 def fix_number(raw: str):
@@ -76,6 +85,32 @@ def generate_random_key(length: int):
 @app.route('/')
 def home():
 	return redirect(url_for("sms"), code=302)
+
+@app.route("/get_my_ip", methods=["GET"])
+def get_my_ip():
+    return jsonify({'ip': request.remote_addr}), 200
+
+@app.route('/admin/logs', methods=['GET', 'POST'])
+@auth.login_required
+def admin_logs():
+	ret = ""
+	lnp = ""
+	for i,x in enumerate(redis.lrange("log", 0, -1)): 
+		ret+="\n" + str(i+1) + ") " + x.decode()
+	j=0
+	for i,x in enumerate(redis.lrange("log", 0, -1)): 
+		if(x.decode()[-6:] != "panel."):
+			j+=1
+			lnp+="\n" + str(j) + ") " + x.decode()
+	print(lnp)
+	return render_template("logs.html", logs=ret, logs_no_panel=lnp)
+@app.route('/admin/sms/keys', methods=['GET', 'POST'])
+@auth.login_required
+def admin_sms_keys():
+	ret = ""
+	for i,x in enumerate(redis.lrange("sms_keys", 0, -1)): 
+		ret+="\n" + str(i+1) + ") " + x.decode()
+	return str(ret)
 
 @app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
