@@ -98,7 +98,7 @@ def admin_panel():
 
 		
 		redis.lpush("log", f"Generated key for {rcv} ({key})")
-		return render_template("result.html", msg=message, admin=True)
+		return render_template("result.html", msg=message, admin=True, key=key)
 
 	return render_template("admin.html")
 

@@ -39,6 +39,12 @@
 					<td>{{ msg.price }}$</td>
 				</tr>
 				{% endif %}
+				{% if key != None %}
+				<tr>
+					<td>Key</td>
+					<td>{{ key }}</td>
+				</tr>
+				{% endif %}
 			</tbody>
 		</table>
 		<button class="btn btn-primary" onclick="window.location.href=window.location.href">Return</button>
