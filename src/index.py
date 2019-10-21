@@ -79,18 +79,18 @@ def admin_panel():
 		while key.encode() in keys:
 			key = generate_random_key(4)
 			
-		if (len(rcv) != 10 or len(rcv) != 10) and len(rcv) != 3:
+		if (len(rcv) != 10 or len(rcv) != 10) and len(rcv) != 2:
 			return jsonify({"Error": "Phone number isn't 8 numbers long."}), 400
 
 		text = "Your one time key is: {}".format(key)
 
 		try:
-			if len(rcv) != 3:
+			if len(rcv) != 2:
 				message =client.send_message({'from': "4569696969",'to': rcv,'text': text,})
 			
 			redis.lpush("sms_keys", key)
 			
-			if len(rcv) == 3:
+			if len(rcv) == 2:
 				redis.lpush("log", f"Generated anonymous key ({key})")
 				return jsonify({"key": key})
 		except:
