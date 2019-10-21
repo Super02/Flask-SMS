@@ -11,6 +11,9 @@
 <body>
 	<div class="container">
 		<h1>Register one time key</h1>
+		{% if admin != None %}
+		<h1>Key: %admin%</h1>
+		{% endif %}
 		<form method="POST">
 			<div class="form-group">
 				<label>Reciever: </label>
