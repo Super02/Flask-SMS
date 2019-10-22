@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<link rel = "stylesheet" type = "text/css" href = "../static/styles.css" />
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+	rel="stylesheet" 
+	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+	crossorigin="anonymous">
+	<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="http://netdna.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+	<title>SMS Result</title>
+</head>
+<body>
+	<div class="container">
+			<p>
+				<a class="btn btn-primary" id="all_logs" data-toggle="collapse" href="#logs" role="button" aria-expanded="false" aria-controls="logs">
+			 	 All logs
+				</a>
+		 	</p>
+			 <div class="collapse" id="logs">
+				<div class="card card-body" style="width: 155%";>
+					{{ logs }}
+			</div>
+		 </div>
+		 <p>
+			<a class="btn btn-primary" data-toggle="collapse" href="#logs_no_panel" role="button" aria-expanded="false" aria-controls="logs_no_panel">
+				Other logs than Admin Panel
+				</a>
+		 	</p>
+			 <div class="collapse" id="logs_no_panel">
+				<div class="card card-body">
+					{{ logs_no_panel }}
+			</div>
+		 </div>
+		<button class="btn btn-primary" onclick="window.location.href=window.location.href">Return</button>
+	</div>
+</body>
+</html>

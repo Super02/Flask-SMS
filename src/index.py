@@ -1,10 +1,12 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, redirect, url_for
 from flask_httpauth import HTTPBasicAuth
 import nexmo
 from random import choice
 from string import digits
 from os import getenv
 from redis import Redis
+from datetime import datetime
+import time
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -12,13 +14,30 @@ secret = getenv("secret")
 key = getenv("key")
 client = nexmo.Client(key=key, secret=secret)
 redis = Redis().from_url(getenv("REDIS_URL"))
+laststamp=[time.time(),time.time(),time.time()]
 
 @auth.verify_password
 def verify_password(username, password):
+	global laststamp
+	if(laststamp[0]+2<time.time()):
+		laststamp[0]=time.time()
+		sendLog("Someone is logging into admin panel.")
 	if (username, password) == ("admin", getenv("admin_pass")):
+		if(laststamp[1]+2<time.time()):
+			laststamp[1]=time.time()
+			sendLog("Someone succesfuly logged into admin panel.")
 		return True
+	else:
+		if(laststamp[2]+2<time.time()):
+			laststamp[2]=time.time()
+			sendLog("Someone failed to log into admin panel.")
 
 	return False
+
+def sendLog(logdata:str):
+	dt = datetime.now()
+	redis.lpush("log", "Browser: " + request.headers.get('User-Agent') + " | " + "IP: " + request.remote_addr + " | " + "Timestamp: " + str(dt) + " | " + logdata)
+
 
 def fix_number(raw: str):
 	if(raw==None):
@@ -38,26 +57,25 @@ def send_sms(src:str, dst:str, text:str, key=None):
 		if len(text) == 0 or len(text.encode()) > 140:
 			return jsonify({"Error": "Invalid message length"}), 400
 		try:
-			message =client.send_message({'from': fix_number(src),'to': fix_number(dst),'text': text,})
+			message = client.send_message({'from': fix_number(src),'to': fix_number(dst),'text': text,})
 			if key is not None:
 				redis.lrem("sms_keys", 0, key)
 			if(message["messages"][0]["status"] == "0"):
-				redis.lpush("log", "Message sent \nFrom: {}\nTo: {}\nText: {}".format(fix_number(src),fix_number(dst),text))
+				sendLog("Message sent \nFrom: {}\nTo: {}\nText: {}".format(fix_number(src),fix_number(dst),text))
 				print(message["messages"])
 			else:
-				redis.lpush("log", f"Message failed with error: {message ['messages'][0]['error-text']}")
-				print(f"Message failed with error: {message ['messages'][0]['error-text']}")
+				sendLog(f"Message failed with error: {message ['messages'][0]['error-text']}")
 		except Exception: #FIX LIGE OOF
 			return jsonify({"Error": "Source and Destination cannot be the same"}), 400
-		redis.lpush("log", f"{src} => {dst} | Key: {key} | Text: {text}")
+		sendLog(f"{src} => {dst} | Key: {key} | Text: {text}")
 		return render_template("result.html", msg=message, admin=(key is None))
 	else:
 		message =client.send_message({'from': fix_number(src),'to': fix_number(dst),'text': text,})
 		if(message["messages"][0]["status"] == "0"):
-			redis.lpush("log", "Message sent \nFrom: {}\nTo: {}\nText: {}".format(fix_number(src),fix_number(dst),text))
+			sendLog("Message sent \nFrom: {}\nTo: {}\nText: {}".format(fix_number(src),fix_number(dst),text))
 			print(message["messages"])
 		else:
-			redis.lpush("log", f"Message failed with error: {message ['messages'][0]['error-text']}")
+			sendLog(f"Message failed with error: {message ['messages'][0]['error-text']}")
 			print(f"Message failed with error: {message ['messages'][0]['error-text']}")
 
 
@@ -66,7 +84,33 @@ def generate_random_key(length: int):
 
 @app.route('/')
 def home():
-	return "Please send an sms using https://sms-spoofing.herokuapp.com/sms"
+	return redirect(url_for("sms"), code=302)
+
+@app.route("/get_my_ip", methods=["GET"])
+def get_my_ip():
+    return jsonify({'ip': request.remote_addr}), 200
+
+@app.route('/admin/logs', methods=['GET', 'POST'])
+@auth.login_required
+def admin_logs():
+	ret = ""
+	lnp = ""
+	for i,x in enumerate(redis.lrange("log", 0, -1)): 
+		ret+="\n" + str(i+1) + ") " + x.decode()
+	j=0
+	for i,x in enumerate(redis.lrange("log", 0, -1)): 
+		if(x.decode()[-6:] != "panel."):
+			j+=1
+			lnp+="\n" + str(j) + ") " + x.decode()
+	print(lnp)
+	return render_template("logs.html", logs=ret, logs_no_panel=lnp)
+@app.route('/admin/sms/keys', methods=['GET', 'POST'])
+@auth.login_required
+def admin_sms_keys():
+	ret = ""
+	for i,x in enumerate(redis.lrange("sms_keys", 0, -1)): 
+		ret+="\n" + str(i+1) + ") " + x.decode()
+	return str(ret)
 
 @app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
@@ -91,13 +135,13 @@ def admin_panel():
 			redis.lpush("sms_keys", key)
 			
 			if len(rcv) == 2:
-				redis.lpush("log", f"Generated anonymous key ({key})")
+				sendLog(f"Generated anonymous key ({key})")
 				return jsonify({"key": key})
 		except:
 			return jsonify({"Error": "Unknown Error!"})
 
 		
-		redis.lpush("log", f"Generated key for {rcv} ({key})")
+		sendLog(f"Generated key for {rcv} ({key})")
 		return render_template("result.html", msg=message, admin=True, key=key)
 
 	return render_template("admin.html")
