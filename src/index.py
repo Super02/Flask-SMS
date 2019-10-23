@@ -33,9 +33,12 @@ def listen_receipts(posting:bool, data):
 	global waiting_receipt
 	if(posting==True):
 		waiting_receipt=data.args
+		print("Delivered DLR receipt.")
 	else:
 		while waiting_receipt==None:
 			time.sleep(1)
+			print("Waiting for receipt")
+		print("Sending receipt")
 		sent=waiting_receipt
 		waiting_receipt=None
 		return sent
