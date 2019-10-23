@@ -75,8 +75,7 @@ def admin_panel():
 		try:
 			message = client.send_message({'from': "SMSService",'to': reciever,'text': message,})
 			sendLog(f"Generated 1 key for {reciever} ({key})") # Might wanna check how it works with sendlog
-			print(listen_receipts(False, None))
-			return "OOF"
+			return render_template("receipt", data=listen_receipts(False, None), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print(e)
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info!"})
