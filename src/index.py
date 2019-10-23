@@ -79,7 +79,7 @@ def admin_panel():
 
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
-	if(request.method == "POST"):
+	if(request.method == "GET"):
 		print("DLR receipt: " + str(request.args))
 		listen_receipts(True, request)
 	return "You've been boofed!"
