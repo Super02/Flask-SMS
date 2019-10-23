@@ -30,7 +30,6 @@ def fix_number(number:str):
 	return "45" + number
 waiting_receipt = ""
 def listen_receipts(posting:bool, data):
-	global waiting_receipt
 	if(posting==True):
 		global waiting_receipt
 		waiting_receipt=data.args
