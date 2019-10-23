@@ -35,7 +35,6 @@ def listen_receipts(posting:bool, data):
 		waiting_receipt=data.args
 		print("Delivered " + str(waiting_receipt))
 	else:
-		global waiting_receipt
 		while waiting_receipt=="":
 			time.sleep(1)
 			print("Waiting for receipt " + waiting_receipt)
