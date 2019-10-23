@@ -28,16 +28,16 @@ def fix_number(number:str):
 		return None
 	number = number.replace(" ", "").replace("+45", "")
 	return "45" + number
-waiting_receipt = None
+waiting_receipt = ""
 def listen_receipts(posting:bool, data):
 	global waiting_receipt
 	if(posting==True):
 		waiting_receipt=data.args
 	else:
-		while waiting_receipt==None:
+		while waiting_receipt=="":
 			time.sleep(1)
 			print("Waiting for receipt " + waiting_receipt)
-			if(waiting_receipt != None): break
+			if(waiting_receipt != ""): break
 		print("Sending receipt")
 		sent=waiting_receipt
 		waiting_receipt=None
