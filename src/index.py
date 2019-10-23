@@ -28,7 +28,9 @@ def fix_number(number:str):
 		return None
 	number = number.replace(" ", "").replace("+45", "")
 	return "45" + number
+waiting_receipt = None
 def listen_receipts(posting:bool, data):
+	global waiting_receipt
 	if(posting==True):
 		waiting_receipt=data.args
 	else:
@@ -58,19 +60,20 @@ def home():
 @auth.login_required
 def admin_panel():
 	if(request.method == "POST"):
-		reciever = fix_number(request.form.get('reciever'))
+		reciever = fix_number(request.form.get('reciever')) # Make sure it's up to date
 		keys = redis.lrange("sms_keys", 0, -1)
 		key = genkey(4)
 		while key.encode() in keys:
 			key = genkey(4)
 		if(len(reciever) != 10):
 			return jsonify({"Error": "Phone number is not 8 numbers long."}), 400
-		message = "Your one time key is: {} \nuse it here: {}".format(key, url_for('/sms'))
+		message = "Your one time key is: {} \nuse it here: {}".format(key, url_for('admin_panel')) #Make sure this actually works
 		try:
 			message = client.send_message({'from': "SMSService",'to': reciever,'text': message,})
-			sendLog(f"Generated 1 key for {reciever} ({key})")
-			return render_template("receipt", data=listen_receipts(False, None), admin=True, key=key)
-		except:
+			sendLog(f"Generated 1 key for {reciever} ({key})") # Might wanna check how it works with sendlog
+			return render_template("receipt", data=listen_receipts(False, None), admin=True, key=key) # **Make sure this waits for receipt**
+		except Exception as e:
+			print(e)
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info!"})
 	return render_template("admin_panel.html")
 

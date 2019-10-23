@@ -12,9 +12,9 @@
 </head>
 <body>
 	<div class="container">
-		<h1 class="title-text">Send SMS</h1>
+		<h1 class="title-text" id="title-text">SMSService</h1>
 		<form method="POST">
-			<div class="input-group flex-nowrap" id="box1">
+			<div class="input-group flex-nowrap" >
                 <div class="input-group-prepend">
                     <span class="input-group-text"><i class="fa fa-phone" aria-hidden="true"></i></span>
                     </div>
@@ -22,22 +22,22 @@
               </div>
               <div class="input-group flex-nowrap">
               <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="fa fa-phone" aria-hidden="true"></i></span>
+                    <span class="input-group-text"><i class="fa fa-phone-square" aria-hidden="true"></i></span>
                     </div>
-                <input type="text" class="form-control" placeholder="Source" name="src" aria-label="Source" aria-describedby="addon-wrapping">
+                <input type="text" class="form-control" placeholder="Destination" name="dst" aria-label="Source" aria-describedby="addon-wrapping">
               </div>
 			{% if not admin %}
 			<div class="form-group">
-				<label id="3text">Key: </label>
-				<input type="text" class="form-control" name="key" id="3field" placeholder="Insert key" />
+				<label id="key-text">Key: </label>
+				<input type="text" class="form-control" name="key" placeholder="Insert key" />
 			</div>
 			{% endif %}
 			<div class="form-group">
-				<label id="4text">Message Body: </label>
-				<textarea name="text" class="form-control"></textarea>
+				<label id="body-text">Message Body: </label>
+				<textarea name="text" class="form-control" placeholder="Message"></textarea>
 			</div>
 
-			<button type="submit" class="btn btn-primary">Submit</button>
+			<button type="submit" class="btn btn-primary" id="button-main">Submit</button>
 		</form>
 	</div>
 </body>
