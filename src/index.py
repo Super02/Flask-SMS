@@ -38,10 +38,10 @@ def listen_receipts():
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
 	print(redis.get("receipt").decode())
-	sent=json.loads(redis.get("receipt").decode())
+	sent=redis.get("receipt").decode()
 	redis.set("receipt", "")
 	print("Recieved DLR for receipt. " + sent)
-	return sent
+	return json.loads(sent)
 
 
 def sendLog(logdata:str): #Fix pls
