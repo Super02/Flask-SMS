@@ -23,7 +23,12 @@ client = nexmo.Client(key=key, secret=secret)
 redis = Redis().from_url(getenv('REDIS_URL'))
 waiting_receipt = ""
 
-
+def isInt(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
 def genkey(length:int):
 	x = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(length))
 	return x
