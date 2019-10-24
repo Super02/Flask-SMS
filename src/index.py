@@ -36,7 +36,7 @@ def listen_receipts():
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
-	sent=json.loads(redis.get("receipt").decode())
+	sent=json.dumps(redis.get("receipt").decode())
 	redis.set("receipt", "")
 	print("Recieved DLR for receipt. " + sent)
 	return sent
