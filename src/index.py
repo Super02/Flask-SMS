@@ -74,6 +74,7 @@ def admin_panel():
 			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print("Error! " + str(e))
+			print(e)
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
 	return render_template("admin_panel.html")
 
