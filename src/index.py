@@ -35,8 +35,8 @@ def listen_receipts():
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
-	print("Sending receipt")
 	sent=str(redis.get("receipt"))
+	print("Sending receipt " + sent)
 	redis.set("receipt", "")
 	return sent
 
