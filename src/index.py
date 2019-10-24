@@ -9,6 +9,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import time, logging
 from logdna import LogDNAHandler
+import json
 
 load_dotenv()
 logkey = getenv("logkey")
@@ -30,14 +31,12 @@ def fix_number(number:str):
 	number = number.replace(" ", "").replace("+45", "")
 	return "45" + number
 def listen_receipts():
-	print("Getting " + str(redis.get("receipt")))
 	for x in range(25):
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
-	sent=str(redis.get("receipt").decode())
+	sent=json.loads(redis.hgetall("receipt").decode())
 	redis.set("receipt", "")
-	print("Sending receipt " + sent)
 	return sent
 
 
@@ -80,9 +79,7 @@ def admin_panel():
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
 	if(request.method == "GET"):
-		print("DLR receipt: " + str(request.args))
-		redis.set("receipt", str(request.args))
-		print("Delivered " + str(redis.get("receipt")))
+		redis.hmset("receipt", request.get_json)
 	return "You've been boofed!"
 
 if __name__ == '__main__':

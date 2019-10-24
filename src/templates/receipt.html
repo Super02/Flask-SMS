@@ -15,28 +15,28 @@
 			<tbody>
 				<tr>
 					<td>From</td>
-					<td>+{{ data.from_ }}</td>
+					<td>+{{ data[msisdn] }}</td>
 				</tr>
 				<tr>
 					<td>To</td>
-					<td>+{{ data.to }}</td>
+					<td>+{{ data[to] }}</td>
 				</tr>
 				<tr>
 					<td>Status</td>
-					<td>{{ data.status }}</td>
+					<td>{{ data[status] }}</td>
 				</tr>
 				<tr>
 					<td>Code</td>
-					<td>{{ data.error_code }}</td>
+					<td>{{ data[err-code] }}</td>
 				</tr>
 				{% if admin %}
 				<tr>
 					<td>UUID(s)</td>
-					<td>{{ data.sid }}</td>
+					<td>{{ data[messageId] }}</td>
 				</tr>
 				<tr>
 					<td>Total Price</td>
-					<td>{{ data.price }}$</td>
+					<td>{{ data[price] }}$</td>
 				</tr>
 				{% endif %}
 				{% if key != None %}
