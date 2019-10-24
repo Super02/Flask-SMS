@@ -35,7 +35,7 @@ def listen_receipts():
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
-	sent=json.loads(redis.hgetall("receipt").decode())
+	sent=json.loads(redis.get("receipt").decode())
 	redis.set("receipt", "")
 	return sent
 
@@ -79,7 +79,7 @@ def admin_panel():
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
 	if(request.method == "GET"):
-		redis.hmset("receipt", request.get_json)
+		redis.set("receipt", str(request.get_json))
 	return "You've been boofed!"
 
 if __name__ == '__main__':
