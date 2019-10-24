@@ -30,15 +30,14 @@ def fix_number(number:str):
 	number = number.replace(" ", "").replace("+45", "")
 	return "45" + number
 def listen_receipts():
-	global waiting_receipt
-	print("Getting " + waiting_receipt)
+	print("Getting " + redis.get("receipt"))
 	for x in range(25):
 		time.sleep(1)
-		print(f"{x}/25 Waiting for receipt " + str(waiting_receipt))
-		if(waiting_receipt != ""): break
+		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
+		if(redis.get("receipt") != ""): break
 	print("Sending receipt")
-	sent=waiting_receipt
-	waiting_receipt=None
+	sent=redis.get("receipt")
+	redis.set("receipt", "")
 	return sent
 
 
@@ -75,15 +74,15 @@ def admin_panel():
 			return render_template("receipt", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print(e)
-			return jsonify({"Error": "An unknown error occured. Please contact us for more info! " + str(waiting_receipt)})
+			return jsonify({"Error": "An unknown error occured. Please contact us for more info! " + str(redis.get("receipt"))})
 	return render_template("admin_panel.html")
 
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
 	if(request.method == "GET"):
 		print("DLR receipt: " + str(request.args))
-		waiting_receipt=request.args
-		print("Delivered " + str(waiting_receipt))
+		redis.set("receipt", request.args)
+		print("Delivered " + redis.get("receipt"))
 	return "You've been boofed!"
 
 if __name__ == '__main__':
