@@ -38,10 +38,10 @@ def listen_receipts():
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
 	print(redis.get("receipt").decode())
-	sent=json.dumps(redis.get("receipt").decode())
+	sent=json.loads(redis.get("receipt").decode())
 	redis.set("receipt", "")
 	print("Recieved DLR for receipt. " + sent)
-	return json.loads(sent)
+	return sent
 
 
 def sendLog(logdata:str): #Fix pls
@@ -74,7 +74,7 @@ def admin_panel():
 		try:
 			message = client.send_message({'from': "SMSService",'to': reciever,'text': message,})
 			sendLog(f"Generated 1 key for {reciever} ({key})") # Might wanna check how it works with sendlog
-			data=json.loads("\"" + listen_receipts() + "\"")
+			data=listen_receipts()
 			return render_template("receipt.html", from_=data["to"], to=data["msisdn"], status=data["status"], code=data["err-code"], uid=data["messageId"], price=data["price"], admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print("Error! " + str(e))
