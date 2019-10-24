@@ -1,18 +1,28 @@
 body {
-    background-color: #2c3e50;
-    align-content: center;
-    vertical-align: middle;
+    background-color: #16a085
 }
 
-.title-text {
+.input-group.flex-nowrap {
+    margin-bottom: 2%
+}
+
+.form-control {
+    font-size: 14px;
+    font-family: sans-serif;
+}
+
+#title-text {
     text-align: center;
+    margin-bottom: 2rem;
+    font-weight: bold;
 }
 
-.card {
-    line-height: 400%;
+#key-text {
+    font-size: 16px;
+    font-weight: bold;
 }
 
-.container {
-    align-content: center;
-    background-color: #2c3e50;
+#body-text {
+    font-size: 16px;
+    font-weight: bold;
 }

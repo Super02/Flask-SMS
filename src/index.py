@@ -1,173 +1,92 @@
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from flask_httpauth import HTTPBasicAuth
 import nexmo
-from random import choice
+import random, string
 from string import digits
 from os import getenv
 from redis import Redis
 from datetime import datetime
-import time
+from dotenv import load_dotenv
+import time, logging
+from logdna import LogDNAHandler
 
+load_dotenv()
+logkey = getenv("logkey")
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 secret = getenv("secret")
 key = getenv("key")
 client = nexmo.Client(key=key, secret=secret)
-redis = Redis().from_url(getenv("REDIS_URL"))
-laststamp=[time.time(),time.time(),time.time()]
+redis = Redis().from_url(getenv('REDIS_URL'))
 
-@auth.verify_password
-def verify_password(username, password):
-	global laststamp
-	if(laststamp[0]+2<time.time()):
-		laststamp[0]=time.time()
-		sendLog("Someone is logging into admin panel.")
-	if (username, password) == ("admin", getenv("admin_pass")):
-		if(laststamp[1]+2<time.time()):
-			laststamp[1]=time.time()
-			sendLog("Someone succesfuly logged into admin panel.")
-		return True
+
+def genkey(length:int):
+	x = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(length))
+	return x
+def fix_number(number:str):
+	if(number == None):
+		return None
+	number = number.replace(" ", "").replace("+45", "")
+	return "45" + number
+waiting_receipt = ""
+def listen_receipts(posting:bool, data):
+	if(posting==True):
+		global waiting_receipt
+		waiting_receipt=data.args
+		print("Delivered " + str(waiting_receipt))
 	else:
-		if(laststamp[2]+2<time.time()):
-			laststamp[2]=time.time()
-			sendLog("Someone failed to log into admin panel.")
+		while waiting_receipt=="":
+			time.sleep(1)
+			print("Waiting for receipt " + waiting_receipt)
+			if(waiting_receipt != ""): break
+		print("Sending receipt")
+		sent=waiting_receipt
+		waiting_receipt=None
+		return sent
 
-	return False
 
-def sendLog(logdata:str):
+def sendLog(logdata:str): #Fix pls
 	dt = datetime.now()
 	redis.lpush("log", "Browser: " + request.headers.get('User-Agent') + " | " + "IP: " + request.remote_addr + " | " + "Timestamp: " + str(dt) + " | " + logdata)
 
-
-def fix_number(raw: str):
-	if(raw==None):
-		return None
-	raw = raw.replace(" ", "")
-	raw = raw.replace("+45", "")
-	return "45{}".format(raw)
-
-def send_sms(src:str, dst:str, text:str, key=None):
-	if not key is None:
-		key = key.encode()
-		keys = redis.lrange("sms_keys", 0, -1)
-		if key not in keys:
-			return jsonify({"Error": "Invalid key"}), 400
-		if len(src) != 11 or len(dst) != 11:
-			return jsonify({"Error": "Source or Destination numbers are not 8 characters long"}), 400
-		if len(text) == 0 or len(text.encode()) > 140:
-			return jsonify({"Error": "Invalid message length"}), 400
-		try:
-			message = client.send_message({'from': fix_number(src),'to': fix_number(dst),'text': text,})
-			if key is not None:
-				redis.lrem("sms_keys", 0, key)
-			if(message["messages"][0]["status"] == "0"):
-				sendLog("Message sent \nFrom: {}\nTo: {}\nText: {}".format(fix_number(src),fix_number(dst),text))
-				print(message["messages"])
-			else:
-				sendLog(f"Message failed with error: {message ['messages'][0]['error-text']}")
-		except Exception: #FIX LIGE OOF
-			return jsonify({"Error": "Source and Destination cannot be the same"}), 400
-		sendLog(f"{src} => {dst} | Key: {key} | Text: {text}")
-		return render_template("result.html", msg=message, admin=(key is None))
+@auth.verify_password
+def verify_password(username, password):
+	if (username, password) == ("admin", getenv("admin_pass")):
+		return True
 	else:
-		message =client.send_message({'from': fix_number(src),'to': fix_number(dst),'text': text,})
-		if(message["messages"][0]["status"] == "0"):
-			sendLog("Message sent \nFrom: {}\nTo: {}\nText: {}".format(fix_number(src),fix_number(dst),text))
-			print(message["messages"])
-		else:
-			sendLog(f"Message failed with error: {message ['messages'][0]['error-text']}")
-			print(f"Message failed with error: {message ['messages'][0]['error-text']}")
-
-
-def generate_random_key(length: int):
-	return "".join(choice(digits) for _ in range(length))
+		return False
 
 @app.route('/')
-def home():
-	return redirect(url_for("sms"), code=302)
-
-@app.route("/get_my_ip", methods=["GET"])
-def get_my_ip():
-    return jsonify({'ip': request.remote_addr}), 200
-
-@app.route('/admin/logs', methods=['GET', 'POST'])
-@auth.login_required
-def admin_logs():
-	ret = ""
-	lnp = ""
-	for i,x in enumerate(redis.lrange("log", 0, -1)): 
-		ret+="\n" + str(i+1) + ") " + x.decode()
-	j=0
-	for i,x in enumerate(redis.lrange("log", 0, -1)): 
-		if(x.decode()[-6:] != "panel."):
-			j+=1
-			lnp+="\n" + str(j) + ") " + x.decode()
-	print(lnp)
-	return render_template("logs.html", logs=ret, logs_no_panel=lnp)
-@app.route('/admin/sms/keys', methods=['GET', 'POST'])
-@auth.login_required
-def admin_sms_keys():
-	ret = ""
-	for i,x in enumerate(redis.lrange("sms_keys", 0, -1)): 
-		ret+="\n" + str(i+1) + ") " + x.decode()
-	return str(ret)
+def home(): 
+	return render_template("index.html")	
 
 @app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
 def admin_panel():
-	if request.method == "POST":
-		rcv = fix_number(request.form.get('rcv'))
-
+	if(request.method == "POST"):
+		reciever = fix_number(request.form.get('reciever')) # Make sure it's up to date
 		keys = redis.lrange("sms_keys", 0, -1)
-		key = generate_random_key(4)
+		key = genkey(4)
 		while key.encode() in keys:
-			key = generate_random_key(4)
-			
-		if (len(rcv) != 10 or len(rcv) != 10) and len(rcv) != 2:
-			return jsonify({"Error": "Phone number isn't 8 numbers long."}), 400
-
-		text = "Your one time key is: {}".format(key)
-
+			key = genkey(4)
+		if(len(reciever) != 10):
+			return jsonify({"Error": "Phone number is not 8 numbers long."}), 400
+		message = "Your one time key is: {} \nuse it here: {}".format(key, url_for('admin_panel')) #Make sure this actually works
 		try:
-			if len(rcv) != 2:
-				message =client.send_message({'from': "4569696969",'to': rcv,'text': text,})
-			
-			redis.lpush("sms_keys", key)
-			
-			if len(rcv) == 2:
-				sendLog(f"Generated anonymous key ({key})")
-				return jsonify({"key": key})
-		except:
-			return jsonify({"Error": "Unknown Error!"})
+			message = client.send_message({'from': "SMSService",'to': reciever,'text': message,})
+			sendLog(f"Generated 1 key for {reciever} ({key})") # Might wanna check how it works with sendlog
+			return render_template("receipt", data=listen_receipts(False, None), admin=True, key=key) # **Make sure this waits for receipt**
+		except Exception as e:
+			print(e)
+			return jsonify({"Error": "An unknown error occured. Please contact us for more info!"})
+	return render_template("admin_panel.html")
 
-		
-		sendLog(f"Generated key for {rcv} ({key})")
-		return render_template("result.html", msg=message, admin=True, key=key)
-
-	return render_template("admin.html")
-
-
-@app.route('/admin/sms', methods=['GET', 'POST'])
-@auth.login_required
-def admin_sms():
-	if request.method == "POST":
-		src = request.form.get('src')
-		dst = request.form.get('dst')
-		text = request.form.get('text')
-
-		send_sms(src, dst, text, None)
-
-	return render_template("send_sms.html", admin=True)
-@app.route('/sms', methods=['GET', 'POST'])
-def sms():
-	if request.method == "POST":
-		src = request.form.get('src')
-		dst = request.form.get('dst')
-		text = request.form.get('text')
-		key = request.form.get('key')
-
-		send_sms(src, dst, text, key)
-	return render_template("send_sms.html", admin=False)
+@app.route("/DLR-receipts", methods=['GET', 'POST'])
+def DLRReceipts():
+	if(request.method == "GET"):
+		print("DLR receipt: " + str(request.args))
+		listen_receipts(True, request)
+	return "You've been boofed!"
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
