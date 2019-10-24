@@ -29,21 +29,17 @@ def fix_number(number:str):
 	number = number.replace(" ", "").replace("+45", "")
 	return "45" + number
 waiting_receipt = ""
-def listen_receipts(posting:bool, data):
+def listen_receipts():
 	global waiting_receipt
-	if(posting==True):
-		waiting_receipt=data.args
-		print("Delivered " + str(waiting_receipt))
-	else:
-		print("Getting " + waiting_receipt)
-		for x in range(25):
-			time.sleep(1)
-			print("Waiting for receipt " + waiting_receipt)
-			if(waiting_receipt != ""): break
-		print("Sending receipt")
-		sent=waiting_receipt
-		waiting_receipt=None
-		return sent
+	print("Getting " + waiting_receipt)
+	for x in range(25):
+		time.sleep(1)
+		print(f"{x}/25 Waiting for receipt " + waiting_receipt)
+		if(waiting_receipt != ""): break
+	print("Sending receipt")
+	sent=waiting_receipt
+	waiting_receipt=None
+	return sent
 
 
 def sendLog(logdata:str): #Fix pls
@@ -76,7 +72,7 @@ def admin_panel():
 		try:
 			message = client.send_message({'from': "SMSService",'to': reciever,'text': message,})
 			sendLog(f"Generated 1 key for {reciever} ({key})") # Might wanna check how it works with sendlog
-			return render_template("receipt", data=listen_receipts(False, None), admin=True, key=key) # **Make sure this waits for receipt**
+			return render_template("receipt", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print(e)
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info!"})
@@ -86,7 +82,9 @@ def admin_panel():
 def DLRReceipts():
 	if(request.method == "GET"):
 		print("DLR receipt: " + str(request.args))
-		listen_receipts(True, request)
+		global waiting_receipt
+		waiting_receipt=request.args
+		print("Delivered " + str(waiting_receipt))
 	return "You've been boofed!"
 
 if __name__ == '__main__':
