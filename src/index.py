@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import time, logging
 from logdna import LogDNAHandler
 import json
+import traceback
 
 load_dotenv()
 logkey = getenv("logkey")
@@ -74,7 +75,7 @@ def admin_panel():
 			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print("Error! " + str(e))
-			print(e.with_traceback)
+			traceback.print_exc()
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
 	return render_template("admin_panel.html")
 
