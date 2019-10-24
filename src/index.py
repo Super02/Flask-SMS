@@ -22,6 +22,7 @@ key = getenv("key")
 client = nexmo.Client(key=key, secret=secret)
 redis = Redis().from_url(getenv('REDIS_URL'))
 waiting_receipt = ""
+redis.set("receipt", "")
 
 def isInt(s):
     try: 
@@ -93,7 +94,7 @@ def home():
 		message = send_message(src,dst,text,key)
 		if(message == True):
 			special=True
-			if(isInt(fix_number(src))):
+			if(isInt(src.replace(" ", ""))):
 				special=False
 			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key, special=special)
 		else:
