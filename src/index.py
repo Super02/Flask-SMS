@@ -72,7 +72,7 @@ def admin_panel():
 			sendLog(f"Generated 1 key for {reciever} ({key})") # Might wanna check how it works with sendlog
 			return render_template("receipt", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
-			print("Error! " + e)
+			print("Error! " + str(e))
 			res=str(redis.get("receipt"))
 			redis.set("receipt", "")
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info! " + res})
