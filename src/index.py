@@ -82,8 +82,8 @@ def admin_panel():
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
 	if(request.method == "GET"):
-		redis.set("receipt", str(request.get_data()))
-		print(str(request.get_data()))
+		redis.set("receipt", str(request.json()))
+		print(str(request.json()))
 	return "You've been boofed!"
 
 if __name__ == '__main__':
