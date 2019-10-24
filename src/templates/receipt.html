@@ -3,23 +3,50 @@
 <head>
 	<meta charset="UTF-8">
 	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-	rel="stylesheet"
+	rel="stylesheet" 
 	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
-    crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel = "stylesheet" type = "text/css" href = "../static/styles.css" />
-	<title>Send sms</title>
+	crossorigin="anonymous">
+	<title>SMSService</title>
 </head>
 <body>
 	<div class="container">
-		<h1 class="title-text">Result</h1>
-		<form method="POST">
-			<div class="form-group">
-				<label id="Cost">{{ %data% }}</label>
-			</div>
-
-			<button type="submit" class="btn btn-primary">Submit</button>
-		</form>
+		<h1>Status</h1>
+		<table class="table table-striped">
+			<tbody>
+				<tr>
+					<td>From</td>
+					<td>+{{ data.from_ }}</td>
+				</tr>
+				<tr>
+					<td>To</td>
+					<td>+{{ data.to }}</td>
+				</tr>
+				<tr>
+					<td>Status</td>
+					<td>{{ data.status }}</td>
+				</tr>
+				<tr>
+					<td>Code</td>
+					<td>{{ data.error_code }}</td>
+				</tr>
+				{% if admin %}
+				<tr>
+					<td>UUID(s)</td>
+					<td>{{ data.sid }}</td>
+				</tr>
+				<tr>
+					<td>Total Price</td>
+					<td>{{ data.price }}$</td>
+				</tr>
+				{% endif %}
+				{% if key != None %}
+				<tr>
+					<td>Key</td>
+					<td>{{ key }}</td>
+				</tr>
+				{% endif %}
+			</tbody>
+		</table>
 	</div>
 </body>
 </html>
