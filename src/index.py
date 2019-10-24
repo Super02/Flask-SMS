@@ -68,9 +68,9 @@ def admin_panel():
 	if(request.method == "POST"):
 		reciever = fix_number(request.form.get('reciever'))
 		keys = redis.lrange("sms_keys", 0, -1)
-		key = genkey(4)
+		key = genkey(random.randint(4,16))
 		while key.encode() in keys:
-			key = genkey(4)
+			key = genkey(random.randint(4,16))
 		redis.lpush("sms_keys", key)
 		if(len(reciever) == 2):
 			return render_template("showtext.html", title=f"SMS key: {key}")
