@@ -36,6 +36,7 @@ def listen_receipts():
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
 	sent=str(redis.get("receipt"))
+	redis.set("receipt", "")
 	print("Sending receipt " + sent)
 	return sent
 
@@ -73,9 +74,7 @@ def admin_panel():
 			return render_template("receipt", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print("Error! " + str(e))
-			res=str(redis.get("receipt"))
-			redis.set("receipt", "")
-			return jsonify({"Error": "An unknown error occured. Please contact us for more info! " + res})
+			return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
 	return render_template("admin_panel.html")
 
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
