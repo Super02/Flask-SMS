@@ -113,7 +113,7 @@ def sms():
 			if(isInt(src.replace(" ", ""))):
 				special=False
 			return render_template("receipt.html", data=listen_receipts(), admin=True, special=special, key=None)
-		else:
+		else:	
 			return render_template("showtext.html", title="Error",text=message)
 	return render_template("index.html", admin=True)
 
