@@ -35,7 +35,7 @@ def listen_receipts():
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
-	sent=str(redis.get("receipt"))
+	sent=str(redis.get("receipt").decode())
 	redis.set("receipt", "")
 	print("Sending receipt " + sent)
 	return sent
@@ -71,7 +71,7 @@ def admin_panel():
 		try:
 			message = client.send_message({'from': "SMSService",'to': reciever,'text': message,})
 			sendLog(f"Generated 1 key for {reciever} ({key})") # Might wanna check how it works with sendlog
-			return render_template("receipt", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
+			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print("Error! " + str(e))
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
