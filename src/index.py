@@ -42,10 +42,8 @@ def listen_receipts():
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != ""): break
-	print(redis.get("receipt").decode())
 	sent=redis.get("receipt").decode()
 	redis.set("receipt", "")
-	print("Recieved DLR for receipt. " + sent)
 	return json.loads(sent.replace("'", "\""))
 
 
@@ -68,13 +66,16 @@ def home():
 @auth.login_required
 def admin_panel():
 	if(request.method == "POST"):
-		reciever = fix_number(request.form.get('reciever')) # Make sure it's up to date
+		reciever = fix_number(request.form.get('reciever'))
 		keys = redis.lrange("sms_keys", 0, -1)
 		key = genkey(4)
 		while key.encode() in keys:
 			key = genkey(4)
+		redis.lpush("sms_keys", key)
+		if(len(reciever) == 2):
+			return render_template("showtext.html", title=f"SMS key: {key}")
 		if(len(reciever) != 10):
-			return jsonify({"Error": "Phone number is not 8 numbers long."}), 400
+			return render_template("showtext.html", title="Error!", text="Phone number is not 8 numbers long.")
 		message = "Your one time key is: {} \nuse it here: {}".format(key, url_for('admin_panel')) #Make sure this actually works
 		try:
 			message = client.send_message({'from': "SMSService",'to': reciever,'text': message,})
@@ -90,11 +91,9 @@ def admin_panel():
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
 	if request.is_json:
-		print(request.get_json())
 		redis.set("receipt", str(request.get_json))
 	else:
 		data = dict(request.form) or dict(request.args)
-		print(data)
 		redis.set("receipt", str(data))
         
 	return ('', 204)
