@@ -61,10 +61,10 @@ def send_message(src:str, dst:str, text:str, key:str):
 		return "Destination number is not 8 numbers long."
 	if(len(text) == 0 or len(text) > 140):
 		return "Message either too small or too long."
-	if(len(key) == 0):
+	if(key != None and len(key) == 0):
 		return "No key entered."
 	keys=redis.lrange("sms_keys", 0, -1)
-	if(key.encode() in keys):
+	if(str(key).encode() in keys or key == None):
 		try:
 			message = client.send_message({'from': src,'to': dst,'text': text})
 			if(key != None):
@@ -96,10 +96,26 @@ def home():
 			special=True
 			if(isInt(src.replace(" ", ""))):
 				special=False
-			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key, special=special)
+			return render_template("receipt.html", data=listen_receipts(), admin=False, key=key, special=special)
 		else:
 			return render_template("showtext.html", title="Error",text=message)
 	return render_template("index.html")	
+
+@app.route('/admin/sms', methods=['GET', 'POST'])
+def sms():
+	if(request.method == "POST"):
+		src = request.form.get('src')
+		dst = request.form.get('dst')
+		text = request.form.get('text')
+		message = send_message(src,dst,text,None)
+		if(message == True):
+			special=True
+			if(isInt(src.replace(" ", ""))):
+				special=False
+			return render_template("receipt.html", data=listen_receipts(), admin=True, special=special, key=None)
+		else:
+			return render_template("showtext.html", title="Error",text=message)
+	return render_template("index.html", admin=True)
 
 @app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
