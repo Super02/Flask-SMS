@@ -37,6 +37,7 @@ def listen_receipts():
 		if(str(redis.get("receipt")) != ""): break
 	sent=json.loads(redis.get("receipt").decode())
 	redis.set("receipt", "")
+	print("Recieved DLR for receipt. " + sent)
 	return sent
 
 
