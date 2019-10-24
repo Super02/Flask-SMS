@@ -36,7 +36,7 @@ def listen_receipts(posting:bool, data):
 		print("Delivered " + str(waiting_receipt))
 	else:
 		print("Getting " + waiting_receipt)
-		for x in range(25)
+		for x in range(25):
 			time.sleep(1)
 			print("Waiting for receipt " + waiting_receipt)
 			if(waiting_receipt != ""): break
