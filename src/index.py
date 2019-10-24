@@ -30,13 +30,13 @@ def fix_number(number:str):
 	number = number.replace(" ", "").replace("+45", "")
 	return "45" + number
 def listen_receipts():
-	print("Getting " + redis.get("receipt"))
+	print("Getting " + str(redis.get("receipt")))
 	for x in range(25):
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
-		if(redis.get("receipt") != ""): break
+		if(str(redis.get("receipt")) != ""): break
 	print("Sending receipt")
-	sent=redis.get("receipt")
+	sent=str(redis.get("receipt"))
 	redis.set("receipt", "")
 	return sent
 
@@ -82,7 +82,7 @@ def DLRReceipts():
 	if(request.method == "GET"):
 		print("DLR receipt: " + str(request.args))
 		redis.set("receipt", str(request.args))
-		print("Delivered " + redis.get("receipt"))
+		print("Delivered " + str(redis.get("receipt")))
 	return "You've been boofed!"
 
 if __name__ == '__main__':
