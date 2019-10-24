@@ -81,7 +81,7 @@ def admin_panel():
 def DLRReceipts():
 	if(request.method == "GET"):
 		print("DLR receipt: " + str(request.args))
-		redis.set("receipt", request.args)
+		redis.set("receipt", str(request.args))
 		print("Delivered " + redis.get("receipt"))
 	return "You've been boofed!"
 
