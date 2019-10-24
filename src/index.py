@@ -75,7 +75,7 @@ def admin_panel():
 			return render_template("receipt", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print(e)
-			return jsonify({"Error": "An unknown error occured. Please contact us for more info!"})
+			return jsonify({"Error": "An unknown error occured. Please contact us for more info! " + waiting_receipt})
 	return render_template("admin_panel.html")
 
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
