@@ -18,6 +18,7 @@ secret = getenv("secret")
 key = getenv("key")
 client = nexmo.Client(key=key, secret=secret)
 redis = Redis().from_url(getenv('REDIS_URL'))
+waiting_receipt = ""
 
 
 def genkey(length:int):
@@ -28,13 +29,12 @@ def fix_number(number:str):
 		return None
 	number = number.replace(" ", "").replace("+45", "")
 	return "45" + number
-waiting_receipt = ""
 def listen_receipts():
 	global waiting_receipt
 	print("Getting " + waiting_receipt)
 	for x in range(25):
 		time.sleep(1)
-		print(f"{x}/25 Waiting for receipt " + waiting_receipt)
+		print(f"{x}/25 Waiting for receipt " + str(waiting_receipt))
 		if(waiting_receipt != ""): break
 	print("Sending receipt")
 	sent=waiting_receipt
@@ -75,14 +75,13 @@ def admin_panel():
 			return render_template("receipt", data=listen_receipts(), admin=True, key=key) # **Make sure this waits for receipt**
 		except Exception as e:
 			print(e)
-			return jsonify({"Error": "An unknown error occured. Please contact us for more info! " + waiting_receipt})
+			return jsonify({"Error": "An unknown error occured. Please contact us for more info! " + str(waiting_receipt)})
 	return render_template("admin_panel.html")
 
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
 	if(request.method == "GET"):
 		print("DLR receipt: " + str(request.args))
-		global waiting_receipt
 		waiting_receipt=request.args
 		print("Delivered " + str(waiting_receipt))
 	return "You've been boofed!"
