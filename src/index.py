@@ -41,7 +41,7 @@ def listen_receipts():
 	sent=json.dumps(redis.get("receipt").decode())
 	redis.set("receipt", "")
 	print("Recieved DLR for receipt. " + sent)
-	return sent
+	return json.loads(sent)
 
 
 def sendLog(logdata:str): #Fix pls
