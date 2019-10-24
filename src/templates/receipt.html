@@ -15,28 +15,33 @@
 			<tbody>
 				<tr>
 					<td>From</td>
-					<td>{{ from_ }}</td>
+					{% if special %}
+					<td>{{ data["to"] }}</td>
+					{% endif %}
+					{% if special == False %}
+					<td>+{{ data["to"] }}</td>
+					{% endif %}
 				</tr>	
 				<tr>
 					<td>To</td>
-					<td>+{{ to }}</td>
+					<td>+{{ data["msisdn"] }}</td>
 				</tr>
 				<tr>
 					<td>Status</td>
-					<td>{{ status }}</td>
+					<td>{{ data["status"] }}</td>
 				</tr>
 				<tr>
 					<td>Code</td>
-					<td>{{ code }}</td>
+					<td>{{ data["err-code"] }}</td>
 				</tr>
 				{% if admin %}
 				<tr>
 					<td>UID</td>
-					<td>{{ uid }}</td>
+					<td>{{ data["messageId"] }}</td>
 				</tr>
 				<tr>
 					<td>Total Price</td>
-					<td>{{ price }}$</td>
+					<td>${{ data["price"] }}</td>
 				</tr>
 				{% endif %}
 				{% if key != None %}

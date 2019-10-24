@@ -26,3 +26,10 @@ body {
     font-size: 16px;
     font-weight: bold;
 }
+.dropdown-toggle {
+    border-color: #fff;
+    border-style: solid;
+    border-top: none;
+    border-right: none;
+    border-left: none;
+  }
