@@ -11,6 +11,7 @@ import time, logging
 from logdna import LogDNAHandler
 import json
 import traceback
+import pprint
 
 load_dotenv()
 logkey = getenv("logkey")
@@ -81,10 +82,15 @@ def admin_panel():
 
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
-	if(request.method == "GET"):
-		redis.set("receipt", str(request.json()))
-		print(str(request.json()))
-	return "You've been boofed!"
+	if request.is_json:
+		print(request.get_json())
+		redis.set("receipt", str(request.get_json))
+	else:
+		data = dict(request.form) or dict(request.args)
+		redis.hmset("receipt", data)
+		print(data)
+        
+	return ('', 204)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
