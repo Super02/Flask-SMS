@@ -83,7 +83,7 @@ def admin_panel():
 def DLRReceipts():
 	if(request.method == "GET"):
 		redis.set("receipt", str(request.get_json()))
-		print(str(request.get_json))
+		print(str(request.get_json()))
 	return "You've been boofed!"
 
 if __name__ == '__main__':
