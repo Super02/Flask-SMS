@@ -55,7 +55,7 @@ def sendLog(logdata:str): #Fix pls
 def send_message(src:str, dst:str, text:str, key:str):
 	src=fix_number(src)
 	dst=fix_number(dst)
-	if(len(src) != 10):
+	if(len(src) != 10 and isInt(src)):
 		return "Source number is not 8 numbers long."
 	if(len(dst) != 10):
 		return "Destination number is not 8 numbers long."
