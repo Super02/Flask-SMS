@@ -39,7 +39,8 @@ def fix_number(number:str):
 	number = number.replace(" ", "").replace("+45", "")
 	return "45" + number
 def listen_receipts():
-	for x in range(25):
+	time.sleep(0.1)
+	for x in range(7):
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
 		if(str(redis.get("receipt")) != "b''"): break
@@ -53,9 +54,10 @@ def sendLog(logdata:str): #Fix pls
 	redis.lpush("log", "Browser: " + request.headers.get('User-Agent') + " | " + "IP: " + request.remote_addr + " | " + "Timestamp: " + str(dt) + " | " + logdata)
 
 def send_message(src:str, dst:str, text:str, key:str):
-	src=fix_number(src)
+	if(isInt(src)):
+		src=fix_number(src)
 	dst=fix_number(dst)
-	if(len(src) != 10):
+	if(len(src) != 10 and isInt(src)):
 		return "Source number is not 8 numbers long."
 	if(len(dst) != 10):
 		return "Destination number is not 8 numbers long."
@@ -75,6 +77,7 @@ def send_message(src:str, dst:str, text:str, key:str):
 			traceback.print_exc()
 			return "Unknown error. Check console for more info."
 	else:
+		time.sleep(1)
 		return "Key does not exist."
 
 @auth.verify_password
