@@ -80,7 +80,6 @@ def send_message(src:str, dst:str, text:str, key:str):
 		time.sleep(1)
 		return "Key does not exist."
 
-@auth.verify_password
 def verify_password(username, password):
 	if (username, password) == ("admin", getenv("admin_pass")):
 		return True
