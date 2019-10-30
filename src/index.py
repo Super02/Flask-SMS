@@ -102,6 +102,7 @@ def home():
 	return render_template("index.html")	
 
 @app.route('/admin/sms', methods=['GET', 'POST'])
+@auth.login_required
 def sms():
 	if(request.method == "POST"):
 		src = request.form.get('src')
