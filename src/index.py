@@ -79,7 +79,7 @@ def send_message(src:str, dst:str, text:str, key:str):
 	else:
 		time.sleep(1)
 		return "Key does not exist."
-
+@auth.verify_password
 def verify_password(username, password):
 	if (username, password) == ("admin", getenv("admin_pass")):
 		return True
@@ -144,17 +144,17 @@ def admin_panel():
 			traceback.print_exc()
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
 	return render_template("admin_panel.html")
+
 @app.route('/admin/sms_keys', methods=['GET', 'POST'])
 @auth.login_required
 def sms_keys():
-	return render_template("showtext.html", title="Error!", text="This page is under construction.")
 	if(request.method == "POST"):
 		redis.lset("sms_keys", 0, "DELETED8b57705a-f65c-11e9-802a-5aa538984bd8")
 		redis.lrem("sms_keys", 1, "DELETED8b57705a-f65c-11e9-802a-5aa538984bd8")
 	else:
 		dropdown=""
 		for i,x in enumerate(redis.lrange("sms_keys", 0, -1)):
-			dropdown+=f"<a class=\"dropdown-item\" href=\"#{i}\">{x.decode()}</a>"
+			dropdown+=f"<a class=\"dropdown-item\">{x.decode()}</a>"
 		return render_template("sms_keys.html", dropdown=dropdown)
 
 @app.route("/DLR-receipts", methods=['GET', 'POST'])

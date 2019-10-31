@@ -18,8 +18,13 @@
 	<div class="container">
 		<h1 class="title-text">SMS keys</h1>
 		<form method="POST">
-				<!-- Jeg giver op. PLS lav en dropdown Viggo. Med items fra {{ dropdown }} -->
-			<button type="submit" class="btn btn-primary">Submit</button>
+			<div class="btn-group">
+				<button class="btn btn-secondary btn-lg dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Keys
+				</button>
+				<div class="dropdown-menu">
+					{{ dropdown|safe }}
+				  </div>
 		</form>
 	</div>
 </body>
