@@ -160,7 +160,7 @@ def sms_keys():
 
 @app.route('/email', methods=['GET', 'POST'])
 @auth.login_required
-def sms_keys():
+def email():
 	return render_template("showtext.html", title="Error!", text="Page under construction!")
 	if(request.method == "POST"):
 		src = request.form.get('src')
