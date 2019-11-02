@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+	rel="stylesheet"
+	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+	crossorigin="anonymous">
+	<link rel = "stylesheet" type = "text/css" href = "../static/styles.css" />
+	<title>Send Email</title>
+</head>
+<body>
+	<div class="container">
+		<h1 class="title-text">Send Email</h1>
+		<form method="POST">
+			<div class="form-group">
+				<label id="1text">Source email: </label>
+				<input type="text" class="form-control" name="src" id="1field" placeholder="12 34 56 78" />
+			</div>
+			<div class="form-group">
+				<label id="2text">Destination email: </label>
+				<input type="text" class="form-control" name="dst" id="2field" placeholder="12 34 56 78" />
+			</div>
+			{% if not admin %}
+			<div class="form-group">
+				<label id="3text">Key: </label>
+				<input type="text" class="form-control" name="key" id="3field" placeholder="Insert key" />
+			</div>
+			{% endif %}
+			<div class="form-group">
+				<label id="4text">Message Body: </label>
+				<textarea name="text" class="form-control"></textarea>
+			</div>
+
+			<button type="submit" class="btn btn-primary">Submit</button>
+		</form>
+	</div>
+</body>
+</html>

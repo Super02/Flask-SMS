@@ -12,6 +12,7 @@ from logdna import LogDNAHandler
 import json
 import traceback
 import pprint
+import smtplib
 
 load_dotenv()
 logkey = getenv("logkey")
@@ -156,6 +157,16 @@ def sms_keys():
 		for i,x in enumerate(redis.lrange("sms_keys", 0, -1)):
 			dropdown+=f"<a class=\"dropdown-item\">{x.decode()}</a>"
 		return render_template("sms_keys.html", dropdown=dropdown)
+
+@app.route('/email', methods=['GET', 'POST'])
+@auth.login_required
+def sms_keys():
+	return render_template("showtext.html", title="Error!", text="Page under construction!")
+	if(request.method == "POST"):
+		src = request.form.get('src')
+		dst = request.form.get('dst')
+		key = request.form.get('key')
+		text = request.form.get('text')
 
 @app.route("/DLR-receipts", methods=['GET', 'POST'])
 def DLRReceipts():
