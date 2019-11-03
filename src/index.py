@@ -114,12 +114,17 @@ def sms():
 		message = send_message(src,dst,text,None)
 		if(message == True):
 			special=True
-			if(isInt(src.replace(" ", ""))):
+			if(isInt(fix_number(src))):
 				special=False
 			return render_template("receipt.html", data=listen_receipts(), admin=True, special=special, key=None)
 		else:	
 			return render_template("showtext.html", title="Error",text=message)
 	return render_template("index.html", admin=True)
+
+@app.route('/admin/call', methods=['GET', 'POST'])
+@auth.login_required
+def call():
+	return render_template("showtext.html", title="Error",text="Page under construction!") 
 
 @app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
