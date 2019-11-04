@@ -15,6 +15,7 @@ import pprint
 import smtplib
 from uuid import getnode as get_mac
 import requests
+import math
 
 load_dotenv()
 logkey = getenv("logkey")
@@ -187,7 +188,7 @@ def admin_panel():
 			print("Error! " + str(e))
 			traceback.print_exc()
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
-	return render_template("admin_panel.html", balance=f"{result['value']:0.2f} EUR")
+	return render_template("admin_panel.html", balance=f"{result['value']:0.2f} EUR", sms_left=str(math.floor(float(f"{result['value']:0.2f}")/0.0221)))
 
 @app.route('/admin/sms_keys', methods=['GET', 'POST'])
 @auth.login_required
