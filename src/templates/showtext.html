@@ -8,12 +8,16 @@
     crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel = "stylesheet" type = "text/css" href = "../static/styles.css" />
-	<title>{{ title }}</title>
+	{% if titleBar %}
+	<title>{{ titleBar }}</title>
+	{% else %}
+	<title>SMSService</title>
+	{% endif %}
 </head>
 <body>
 	<div class="container">
-		<h1 class="title-text">{{ title }}</h1>
-		<label id="text-text">{{ text }}</label>
+		<h1 class="title-text">{{ title|safe }}</h1>
+		<label id="text-text">{{ text|safe }}</label>
 	</div>
 </body>
 </html>

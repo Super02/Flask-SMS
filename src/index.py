@@ -13,6 +13,8 @@ import json
 import traceback
 import pprint
 import smtplib
+from uuid import getnode as get_mac
+import requests
 
 load_dotenv()
 logkey = getenv("logkey")
@@ -24,6 +26,24 @@ client = nexmo.Client(key=key, secret=secret)
 redis = Redis().from_url(getenv('REDIS_URL'))
 waiting_receipt = ""
 redis.set("receipt", "")
+log = logging.getLogger('logdna')
+log.setLevel(logging.INFO)
+log = logging.getLogger('logdna')
+log.setLevel(logging.INFO)
+timestamp=[]
+
+print("Starting up... ")
+
+options = {
+  'hostname': 'SMSService',
+  'ip': '10.0.1.1',
+  'mac': 'C0:FF:EE:C0:FF:EE'
+}
+options['index_meta'] = True
+test = LogDNAHandler(logkey, options)
+log.addHandler(test)
+
+print("Starting up...")
 
 def isInt(s):
     try: 
@@ -32,8 +52,12 @@ def isInt(s):
     except ValueError:
         return False
 def genkey(length:int):
+	keys = redis.lrange("sms_keys", 0, -1)
 	x = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(length))
+	while key.encode() in keys:
+		x = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(length))
 	return x
+
 def fix_number(number:str):
 	if(number == None):
 		return None
@@ -41,19 +65,23 @@ def fix_number(number:str):
 	return "45" + number
 def listen_receipts():
 	time.sleep(0.1)
-	for x in range(7):
+	for x in range(25):
 		time.sleep(1)
 		print(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")))
+		sendLog(f"{x}/25 Waiting for receipt " + str(redis.get("receipt")), False)
 		if(str(redis.get("receipt")) != "b''"): break
 	sent=redis.get("receipt").decode()
 	redis.set("receipt", "")
 	return json.loads(sent.replace("'", "\""))
 
 
-def sendLog(logdata:str): #Fix pls
+def sendLog(logdata:str, requests:bool):
 	dt = datetime.now()
-	redis.lpush("log", "Browser: " + request.headers.get('User-Agent') + " | " + "IP: " + request.remote_addr + " | " + "Timestamp: " + str(dt) + " | " + logdata)
-
+	if(requests == True):
+		log.info("Browser: " + request.headers.get('User-Agent') + " | " + "IP: " + request.remote_addr + " | " + "Timestamp: " + str(dt) + " | " + str(logdata))
+	else:
+		log.info(str(logdata))
+log.info("Service started.")
 def send_message(src:str, dst:str, text:str, key:str):
 	if(isInt(src)):
 		src=fix_number(src)
@@ -67,18 +95,22 @@ def send_message(src:str, dst:str, text:str, key:str):
 	if(key != None and len(key) == 0):
 		return "No key entered."
 	keys=redis.lrange("sms_keys", 0, -1)
-	if(str(key).encode() in keys or key == None):
+	if(str(key).encode() in keys or key == None or str(redis.lrange(key, 0, 1)) != None):
 		try:
+			redis.set("receipt", "")
 			message = client.send_message({'from': src,'to': dst,'text': text})
+			sendLog("From > " + str(src) + " to > "+ str(dst) + " key > " + str(key) +" text > " + str(text), True)
 			if(key != None):
 				redis.lrem("sms_keys", 0, key)
 			return True
 		except Exception as e:
 			print(e)
 			traceback.print_exc()
+			sendLog(f"Unknown error: {e}", True)
 			return "Unknown error. Check console for more info."
 	else:
 		time.sleep(1)
+		sendLog(f"Tried to use key that does not exist ({key})", True)
 		return "Key does not exist."
 @auth.verify_password
 def verify_password(username, password):
@@ -96,9 +128,9 @@ def home():
 		text = request.form.get('text')
 		message = send_message(src,dst,text,key)
 		if(message == True):
-			special=True
+			special=""
 			if(isInt(src.replace(" ", ""))):
-				special=False
+				special="+45"
 			return render_template("receipt.html", data=listen_receipts(), admin=False, key=key, special=special)
 		else:
 			return render_template("showtext.html", title="Error",text=message)
@@ -113,9 +145,9 @@ def sms():
 		text = request.form.get('text')
 		message = send_message(src,dst,text,None)
 		if(message == True):
-			special=True
+			special=""
 			if(isInt(fix_number(src))):
-				special=False
+				special="+45"
 			return render_template("receipt.html", data=listen_receipts(), admin=True, special=special, key=None)
 		else:	
 			return render_template("showtext.html", title="Error",text=message)
@@ -126,25 +158,30 @@ def sms():
 def call():
 	return render_template("showtext.html", title="Error",text="Page under construction!") 
 
+
+
 @app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
 def admin_panel():
 	if(request.method == "POST"):
 		reciever = fix_number(request.form.get('reciever'))
-		keys = redis.lrange("sms_keys", 0, -1)
 		key = genkey(random.randint(4,16))
-		while key.encode() in keys:
-			key = genkey(random.randint(4,16))
 		redis.lpush("sms_keys", key)
+		if(request.form.get('reciever')[0:2] == "X*"):
+			akeys=""
+			for i,x in enumerate(range(int(request.form.get('reciever')[2:]))):
+				akeys+=f"<br> {i+1}: " + (genkey(random.randint(4,16)))
+			return render_template("showtext.html", title=f"SMS keys: {akeys}", titleBar="SMS keys:")
 		if(len(reciever) == 2):
 			return render_template("showtext.html", title=f"SMS key: {key}")
 		if(len(reciever) != 10):
 			return render_template("showtext.html", title="Error!", text="Phone number is not 8 numbers long.")
-		message = "Your one time key is: {} \nuse it here: {}".format(key, url_for('admin_panel')) #Make sure this actually works
+		message = "Your one time key is: {} \nuse it here: https://sms.super02.me{}".format(key, url_for('admin_panel')) #Make sure this actually works
 		try:
+			redis.set("receipt", "")
 			message = client.send_message({'from': "SMSService",'to': reciever,'text': message})
-			sendLog(f"Generated 1 key for {reciever} ({key})") # Might wanna check how it works with sendlog
-			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key, special=True)
+			sendLog(f"Generated 1 key for {reciever} ({key})", True)
+			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key, special="")
 		except Exception as e:
 			print("Error! " + str(e))
 			traceback.print_exc()

@@ -15,12 +15,7 @@
 			<tbody>
 				<tr>
 					<td>From</td>
-					{% if special %}
-					<td>{{ data["to"] }}</td>
-					{% endif %}
-					{% if special == False %}
-					<td>+{{ data["to"] }}</td>
-					{% endif %}
+					<td>{{ special }}{{ data["to"] }}</td>
 				</tr>	
 				<tr>
 					<td>To</td>
