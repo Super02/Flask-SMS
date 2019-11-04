@@ -98,9 +98,9 @@ def send_message(src:str, dst:str, text:str, key:str):
 	if(str(key).encode() in keys or key == None or str(redis.lrange(key, 0, 1)) != None):
 		try:
 			redis.set("receipt", "")
-			message = client.send_message({'from': src,'to': dst,'text': text})
+			message = client.send_message({'from': src,'to': dst,'text': text,'type': 'unicode'})
 			sendLog("From > " + str(src) + " to > "+ str(dst) + " key > " + str(key) +" text > " + str(text), True)
-			if(key != None):
+			if(key != None and message["messages"][0]["status"] == "0"):
 				redis.lrem("sms_keys", 0, key)
 			return True
 		except Exception as e:
@@ -163,6 +163,7 @@ def call():
 @app.route('/admin', methods=['GET', 'POST'])
 @auth.login_required
 def admin_panel():
+	result = client.get_balance()
 	if(request.method == "POST"):
 		reciever = fix_number(request.form.get('reciever'))
 		key = genkey(random.randint(4,16))
@@ -186,7 +187,7 @@ def admin_panel():
 			print("Error! " + str(e))
 			traceback.print_exc()
 			return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
-	return render_template("admin_panel.html")
+	return render_template("admin_panel.html", balance=f"{result['value']:0.2f} EUR")
 
 @app.route('/admin/sms_keys', methods=['GET', 'POST'])
 @auth.login_required
