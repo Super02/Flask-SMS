@@ -1,7 +1,7 @@
 # Flask-SMS
 ---
 ### This is a system to send SMSes and make calls through a website, using flask.
---
+---
 ### Setup & Installation
 * You need to buy a service named Nexmo for this to work you can buy it [here](https://www.nexmo.com/).
 * To install and setup this project clone this project down locallay using GitHub clone button. ![Clone](https://raw.githubusercontent.com/Super02/Flask-SMS/master/images/clone.jpg)
