@@ -21,3 +21,4 @@ nexmo==2.4.0
 logdna==1.4.2
 pprint==0.1
 uuid==1.30
+phonenumbers==8.10.22

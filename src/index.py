@@ -16,7 +16,9 @@ import smtplib
 from uuid import getnode as get_mac
 import requests
 import math
+import phonenumbers
 
+formatter = phonenumbers.AsYouTypeFormatter("DA")
 load_dotenv()
 logkey = getenv("logkey")
 app = Flask(__name__)
@@ -32,8 +34,9 @@ log.setLevel(logging.INFO)
 log = logging.getLogger('logdna')
 log.setLevel(logging.INFO)
 timestamp=[]
-
-print("Starting up... ")
+def format_number(number:str):
+	z = phonenumbers.parse("+" + number, None)
+	return(phonenumbers.format_number(z, phonenumbers.PhoneNumberFormat.INTERNATIONAL))
 
 options = {
   'hostname': 'SMSService',
@@ -73,7 +76,11 @@ def listen_receipts():
 		if(str(redis.get("receipt")) != "b''"): break
 	sent=redis.get("receipt").decode()
 	redis.set("receipt", "")
-	return json.loads(sent.replace("'", "\""))
+	data=json.loads(sent.replace("'", "\""))
+	data["msisdn"] = format_number(data["msisdn"])
+	if(isInt(data["to"])):
+		data["to"] = format_number("45" + data["to"])
+	return data
 
 
 def sendLog(logdata:str, requests:bool):
@@ -100,7 +107,7 @@ def send_message(src:str, dst:str, text:str, key:str):
 		try:
 			redis.set("receipt", "")
 			message = client.send_message({'from': src,'to': dst,'text': text,'type': 'unicode'})
-			sendLog("From > " + str(src) + " to > "+ str(dst) + " key > " + str(key) +" text > " + str(text), True)
+			sendLog("From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text), True)
 			if(key != None and message["messages"][0]["status"] == "0"):
 				redis.lrem("sms_keys", 0, key)
 			return True
@@ -129,10 +136,7 @@ def home():
 		text = request.form.get('text')
 		message = send_message(src,dst,text,key)
 		if(message == True):
-			special=""
-			if(isInt(src.replace(" ", ""))):
-				special="+45"
-			return render_template("receipt.html", data=listen_receipts(), admin=False, key=key, special=special)
+			return render_template("receipt.html", data=listen_receipts(), admin=False, key=key)
 		else:
 			return render_template("showtext.html", title="Error",text=message)
 	return render_template("index.html")	
@@ -146,10 +150,7 @@ def sms():
 		text = request.form.get('text')
 		message = send_message(src,dst,text,None)
 		if(message == True):
-			special=""
-			if(isInt(fix_number(src))):
-				special="+45"
-			return render_template("receipt.html", data=listen_receipts(), admin=True, special=special, key=None)
+			return render_template("receipt.html", data=listen_receipts(), admin=True, key=None)
 		else:	
 			return render_template("showtext.html", title="Error",text=message)
 	return render_template("index.html", admin=True)
@@ -183,7 +184,7 @@ def admin_panel():
 			redis.set("receipt", "")
 			message = client.send_message({'from': "SMSService",'to': reciever,'text': message})
 			sendLog(f"Generated 1 key for {reciever} ({key})", True)
-			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key, special="")
+			return render_template("receipt.html", data=listen_receipts(), admin=True, key=key)
 		except Exception as e:
 			print("Error! " + str(e))
 			traceback.print_exc()
