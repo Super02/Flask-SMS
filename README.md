@@ -17,5 +17,5 @@ logkey="LogDNA key"
 Run index.py, and watch your website running at localhost:5000.
 You can then fill out the fields and press submit to see the action!
 ### Credits to:
-@ViggoGaming - for helping designing this project, and helping a little bit with the code.
-@dnorhoj - for coming up with the idea to make this project.
+* @ViggoGaming - for helping designing this project, and helping a little bit with the code.
+* @dnorhoj - for coming up with the idea to make this project.
