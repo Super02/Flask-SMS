@@ -18,10 +18,13 @@ import requests
 import math
 import phonenumbers
 
+blocked_senders=["112", "114", "politiet", "politi", "police", "1813", "100", "poletiet", "poltiet", "poleitiet", "p0lice","p0liti"]
+blocked_receivers=["112", "114", "1813"]
 formatter = phonenumbers.AsYouTypeFormatter("DA")
 load_dotenv()
 logkey = getenv("logkey")
 app = Flask(__name__)
+DEBUG=True	
 auth = HTTPBasicAuth()
 secret = getenv("secret")
 key = getenv("key")
@@ -29,7 +32,7 @@ message_bird_livekey = getenv("messagebirdkey")
 client = nexmo.Client(key=key, secret=secret)
 if(getenv('REDIS_URL') == None or message_bird_livekey == None or secret == None or key == None or logkey == None):
 	print("Error state - " + str(getenv('REDIS_URL') == None or message_bird_livekey == None or secret == None or key == None or logkey == None))
-	@app.route('/', defaults={'path': ''})
+	@app.route('/')
 	@app.route('/<path:path>')
 	def catch_all(path):	
 		return render_template("showtext.html", title="Error!", text="This project has not been setup correctly and is not working.")
@@ -53,7 +56,7 @@ else:
 	'hostname': 'SMSService',
 	'ip': '10.0.1.1',
 	'mac': 'C0:FF:EE:C0:FF:EE'
-	}
+	}	
 	options['index_meta'] = True
 	test = LogDNAHandler(logkey, options)
 	log.addHandler(test)
@@ -88,9 +91,12 @@ else:
 		sent=redis.get("receipt").decode()
 		redis.set("receipt", "")
 		data=json.loads(sent.replace("'", "\""))
-		data["msisdn"] = format_number(data["msisdn"])
+		if(isInt(data["msisdn"])):
+			data["msisdn"] = format_number(data["msisdn"])
+		else:
+			data["msisdn"] = data["msisdn"][2:]
 		if(isInt(data["to"])):
-			data["to"] = format_number("45" + data["to"])
+			data["to"] = format_number(data["to"])
 		return data
 
 
@@ -105,22 +111,47 @@ else:
 		if(isInt(src)):
 			src=fix_number(src)
 		dst=fix_number(dst)
-		if(len(src) != 10 and isInt(src)):
-			return "Source number is not 8 numbers long."
+		if(isInt(src)):
+			tempSrc=src[2:]
+		else:
+			tempSrc=src
+		if(isInt(dst)):
+			tempDst=dst[2:]
+		else:
+			tempDst=dst
+		if(tempSrc.lower() in blocked_senders):
+			if(isInt(src)):
+				return format_number(src) + " is blocked from sending messages."
+			else:
+				return src + " is blocked from sending messages."
+		if(tempDst.lower() in blocked_receivers):
+			if(isInt(dst)):
+				return format_number(dst) + " is blocked from receiving messages."
+			else:
+				return dst + " is blocked from receiving messages."
 		if(len(dst) != 10):
 			return "Destination number is not 8 numbers long."
+		if(isInt(dst) == False):
+			return "Destination number must be a number."
 		if(len(text) == 0 or len(text) > 140):
 			return "Message either too small or too long."
 		if(key != None and len(key) == 0):
 			return "No key entered."
 		keys=redis.lrange("sms_keys", 0, -1)
-		if(str(key).encode() in keys or key == None or str(redis.lrange(key, 0, 1)) != None):
+		if(str(key).encode() in keys or key == None or DEBUG): # REMOVED  or str(redis.lrange(key, 0, 1)) != None    not sure why i put it there, but removing it fixed an error lol.
 			try:
 				redis.set("receipt", "")
-				message = client.send_message({'from': src,'to': dst,'text': text,'type': 'unicode'})
-				sendLog("From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text), True)
-				if(key != None and message["messages"][0]["status"] == "0"):
-					redis.lrem("sms_keys", 0, key)
+				if(DEBUG==False):
+					message = client.send_message({'from': src,'to': dst,'text': text,'type': 'unicode'})
+					sendLog("From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text), True)
+					if(key != None and message["messages"][0]["status"] == "0"):
+						redis.lrem("sms_keys", 0, key)
+				else:
+					print("Key does not exist! But continued because of debug mode.")
+					print("Debug on: " + "From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text))
+					if(key != None):
+						redis.lrem("sms_keys", 0, key)
+					redis.set("receipt", r"{'msisdn': '" + dst + r"', 'to': '" + src[:11] + r"', 'network-code': 'DEBUG', 'messageId': 'DEBUG', 'price': '0', 'status': 'DEBUG', 'scts': 'DEBUG', 'err-code': 'DEBUG', 'api-key': '0', 'message-timestamp': '1900-01-01 00:00:00'}")
 				return True
 			except Exception as e:
 				print(e)
@@ -130,14 +161,15 @@ else:
 		else:
 			time.sleep(1)
 			sendLog(f"Tried to use key that does not exist ({key})", True)
-			return "Key does not exist."
+			return "Key does not exist or is already used."
 	@auth.verify_password
 	def verify_password(username, password):
 		if (username, password) == ("admin", getenv("admin_pass")):
 			return True
 		else:
 			return False
-
+	@app.route('/sms/')
+	@app.route('/sms')
 	@app.route('/', methods=['GET', 'POST'])
 	def home(): 
 		if(request.method == "POST"):
@@ -151,7 +183,6 @@ else:
 			else:
 				return render_template("showtext.html", title="Error",text=message)
 		return render_template("index.html")	
-
 	@app.route('/admin/sms', methods=['GET', 'POST'])
 	@auth.login_required
 	def sms():
@@ -165,26 +196,29 @@ else:
 			else:	
 				return render_template("showtext.html", title="Error",text=message)
 		return render_template("index.html", admin=True)
-
 	@app.route('/admin/call', methods=['GET', 'POST'])
 	@auth.login_required
 	def call():
 		return render_template("showtext.html", title="Error",text="Page under construction!") 
 
 
-
-	@app.route('/admin', methods=['GET', 'POST'])
-	@auth.login_required
+	@app.route('/admin', methods=['GET','POST'])
+	@auth.login_required	
 	def admin_panel():
 		result = client.get_balance()
 		if(request.method == "POST"):
 			reciever = fix_number(request.form.get('reciever'))
 			key = genkey(random.randint(4,16))
-			redis.lpush("sms_keys", key)
+			if(request.form.get('reciever')[0:2] != "X*"):
+				redis.lpush("sms_keys", key)	
 			if(request.form.get('reciever')[0:2] == "X*"):
 				akeys=""
+				if(isInt(request.form.get('reciever')[2:]) != True):
+					return render_template("showtext.html", title="Error!", text="Could not interpret input: " + request.form.get('reciever'))
 				for i,x in enumerate(range(int(request.form.get('reciever')[2:]))):
-					akeys+=f"<br> {i+1}: " + (genkey(random.randint(4,16)))
+					key=genkey(random.randint(4,16))
+					akeys+=f"<br> {i+1}: " + key
+					redis.lpush("sms_keys", key)
 				return render_template("showtext.html", title=f"SMS keys: {akeys}", titleBar="SMS keys:")
 			if(len(reciever) == 2):
 				return render_template("showtext.html", title=f"SMS key: {key}")
@@ -201,7 +235,6 @@ else:
 				traceback.print_exc()
 				return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
 		return render_template("admin_panel.html", balance=f"{result['value']:0.2f} EUR", sms_left=str(math.floor(float(f"{result['value']:0.2f}")/0.0221)))
-
 	@app.route('/admin/sms_keys', methods=['GET', 'POST'])
 	@auth.login_required
 	def sms_keys():
@@ -213,7 +246,6 @@ else:
 			for i,x in enumerate(redis.lrange("sms_keys", 0, -1)):
 				dropdown+=f"<a class=\"dropdown-item\">{x.decode()}</a>"
 			return render_template("sms_keys.html", dropdown=dropdown)
-
 	@app.route('/email', methods=['GET', 'POST'])
 	@auth.login_required
 	def email():
@@ -233,6 +265,8 @@ else:
 			redis.set("receipt", str(data))
 			
 		return ('', 204)
-
+	@app.route("/buy", methods=['GET', 'POST'])
+	def buy():
+		return render_template("showtext.html", title="Error!", text="Page under construction!")
 if __name__ == '__main__':
 	app.run(debug=True, host='0.0.0.0')
