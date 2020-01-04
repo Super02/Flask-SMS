@@ -1,4 +1,4 @@
 .env
 __pycache__/
 .gitignore
-templates/buy.html
+src/templates/buy.html
