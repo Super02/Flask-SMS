@@ -24,7 +24,7 @@ formatter = phonenumbers.AsYouTypeFormatter("DA")
 load_dotenv()
 logkey = getenv("logkey")
 app = Flask(__name__)
-DEBUG=False	
+DEBUG=False
 auth = HTTPBasicAuth()
 secret = getenv("secret")
 key = getenv("key")
