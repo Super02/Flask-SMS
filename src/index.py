@@ -268,5 +268,11 @@ else:
 	@app.route("/buy", methods=['GET', 'POST'])
 	def buy():
 		return render_template("showtext.html", title="Error!", text="Page under construction!")
+	@app.route("/tos", methods=['GET', 'POST'])
+	def tos():
+		return render_template("tos.html")
+	@app.route("/privacy_policy", methods=['GET', 'POST'])
+	def pp():
+		return render_template("pp.html")
 if __name__ == '__main__':
 	app.run(debug=True, host='0.0.0.0')
