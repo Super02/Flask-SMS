@@ -18,13 +18,16 @@ import requests
 import math
 import phonenumbers
 
-blocked_senders=["112", "114", "politiet", "politi", "police", "1813", "100", "poletiet", "poltiet", "poleitiet", "p0lice","p0liti"]
-blocked_receivers=["112", "114", "1813"]
+#--- Edit variables under here ---#
+blocked_senders=["112", "114", "politiet", "politi", "police", "1813", "100", "poletiet", "poltiet", "poleitiet", "p0lice","p0liti"] # Choose senders which are blocked from being used on the site.
+blocked_receivers=["112", "114", "1813"] # Choose receivers which are blocked from being used on the site
+country_code="45" # Country code
 formatter = phonenumbers.AsYouTypeFormatter("DA")
+DEBUG=False # Enable debug mode. No messages will actually be send in this mode but will simulate receipts for messages.
+#--- This is the actual code under this ---#
 load_dotenv()
 logkey = getenv("logkey")
 app = Flask(__name__)
-DEBUG=False
 auth = HTTPBasicAuth()
 secret = getenv("secret")
 key = getenv("key")
@@ -79,8 +82,8 @@ else:
 	def fix_number(number:str):
 		if(number == None):
 			return None
-		number = number.replace(" ", "").replace("+45", "")
-		return "45" + number
+		number = number.replace(" ", "").replace("+"+country_code, "")
+		return country_code + number
 	def listen_receipts():
 		time.sleep(0.1)
 		for x in range(25):
