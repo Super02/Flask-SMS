@@ -16,6 +16,9 @@ logkey="LogDNA key"
 ![Index](https://raw.githubusercontent.com/Super02/Flask-SMS/master/images/index.jpg)
 Run index.py, and watch your website running at localhost:5000.
 You can then fill out the fields and press submit to see the action!
+### Customisation
+![Customize](https://raw.githubusercontent.com/Super02/Flask-SMS/master/images/Variables.jpg)
+Edit these variables as you please.
 ### Credits to:
 * @ViggoGaming - for helping designing this project, and helping a little bit with the code.
 * @dnorhoj - for coming up with the idea to make this project.
