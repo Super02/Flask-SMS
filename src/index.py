@@ -19,8 +19,8 @@ import math
 import phonenumbers
 
 #--- Edit variables under here ---#
-blocked_senders=["112", "114", "politiet", "politi", "police", "1813", "100", "poletiet", "poltiet", "poleitiet", "p0lice","p0liti"] # Choose senders which are blocked from being used on the site.
-blocked_receivers=["112", "114", "1813"] # Choose receivers which are blocked from being used on the site
+blocked_senders=["112", "114", "politiet", "politi", "police", "1813", "100", "poletiet", "poltiet", "poleitiet", "p0lice","p0liti", "40611950", "88888888"] # Choose senders which are blocked from being used on the site.
+blocked_receivers=["112", "114", "1813", "88888888", "40611950"] # Choose receivers which are blocked from being used on the site
 country_code="45" # Country code
 formatter = phonenumbers.AsYouTypeFormatter("DA")
 DEBUG=False # Enable debug mode. No messages will actually be send in this mode but will simulate receipts for messages.
