@@ -136,7 +136,7 @@ else:
 			return "Destination number is not 8 numbers long."
 		if(isInt(dst) == False):
 			return "Destination number must be a number."
-		if(len(text) == 0 or len(text) > 250):
+		if(len(text) == 0 or len(text) > 140):
 			return "Message either too small or too long."
 		if(key != None and len(key) == 0):
 			return "No key entered."
