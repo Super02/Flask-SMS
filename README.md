@@ -13,6 +13,7 @@ secret"Nexmo secret
 logkey="LogDNA key"
 mbird_testkey="MessageBird testkey" #Not required
 messagebirdkey="MessageBird key"
+redis_url="Redis URI"
 ```
 ### Usage
 ![Index](https://raw.githubusercontent.com/Super02/Flask-SMS/master/images/index.jpg)
