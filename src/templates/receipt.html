@@ -13,6 +13,36 @@
 		<h1>Status</h1>
 		<table class="table table-striped">
 			<tbody>
+				{% if mbird %}
+				<tr>
+					<td>From</td>
+					<td>{{ data.originator }}</td>
+					</tr>	
+					<tr>
+						<td>To</td>
+						<td>+{{ data.recipients['items'][0].recipient }}</td>
+					</tr>
+					<tr>
+						<td>Status</td>
+						<td>{{ data.recipients['items'][0].status }}</td>
+					</tr>
+					<tr>
+						<td>Message</td>
+						<td>{{ data.body }}</td>
+					</tr>
+					{% if admin %}
+					<tr>
+						<td>UID</td>
+						<td>{{ data.id }}</td>
+					</tr>
+					{% endif %}
+					{% if key != None %}
+					<tr>
+						<td>Key</td>
+						<td>{{ key }}</td>
+					</tr>
+					{% endif %}
+				{% else %}
 				<tr>
 					<td>From</td>
 					<td>{{ data["to"] }}</td>
@@ -44,6 +74,7 @@
 					<td>Key</td>
 					<td>{{ key }}</td>
 				</tr>
+				{% endif %}
 				{% endif %}
 			</tbody>
 		</table>

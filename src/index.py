@@ -17,21 +17,25 @@ from uuid import getnode as get_mac
 import requests
 import math
 import phonenumbers
+import messagebird
 
 #--- Edit variables under here ---#
 blocked_senders=["112", "114", "politiet", "politi", "police", "1813", "100", "poletiet", "poltiet", "poleitiet", "p0lice","p0liti"] # Choose senders which are blocked from being used on the site.
 blocked_receivers=["112", "114", "1813"] # Choose receivers which are blocked from being used on the site
 country_code="45" # Country code
+alternative_country_code="da-dk"
 formatter = phonenumbers.AsYouTypeFormatter("DA")
 DEBUG=False # Enable debug mode. No messages will actually be send in this mode but will simulate receipts for messages.
 #--- This is the actual code under this ---#
 load_dotenv()
+message_testkey=getenv("mbird_testkey")
 logkey = getenv("logkey")
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 secret = getenv("secret")
 key = getenv("key")
 message_bird_livekey = getenv("messagebirdkey")
+call_client = messagebird.Client(message_bird_livekey)
 client = nexmo.Client(key=key, secret=secret)
 if(getenv('REDIS_URL') == None or message_bird_livekey == None or secret == None or key == None or logkey == None):
 	print("Error state - " + str(getenv('REDIS_URL') == None or message_bird_livekey == None or secret == None or key == None or logkey == None))
@@ -110,6 +114,65 @@ else:
 		else:
 			log.info(str(logdata))
 	log.info("Service started.")
+	def send_call(src:str, dst:str, text:str, key:str):
+		if(isInt(src)):
+			src=fix_number(src)
+		dst=fix_number(dst)
+		if(isInt(src)):
+			tempSrc=src[2:]
+		else:
+			tempSrc=src
+		if(isInt(dst)):
+			tempDst=dst[2:]
+		else:
+			tempDst=dst
+		if(tempSrc.lower() in blocked_senders):
+			if(isInt(src)):
+				return format_number(src) + " is blocked from making calls."
+			else:
+				return src + " is blocked from making calls."
+		if(tempDst.lower() in blocked_receivers):
+			if(isInt(dst)):
+				return format_number(dst) + " is blocked from receiving calls."
+			else:
+				return dst + " is blocked from receiving calls."
+		if(len(dst) != 10):
+			return "Destination number is not 8 numbers long."
+		if(isInt(dst) == False):
+			return "Destination number must be a number."
+		if(len(src) != 10):
+			return "Source number is not 8 numbers long."
+		if(isInt(src) == False):
+			return "Source number must be a number."
+		if(len(text) == 0 or len(text) > 606):
+			return "Message either too small or too long."
+		if(key != None and len(key) == 0):
+			return "No key entered."
+		keys=redis.lrange("sms_keys", 0, -1)
+		if(str(key).encode() in keys or key == None or DEBUG):
+			if(DEBUG==False):
+				try:
+					call_obj = call_client.voice_message_create([dst], text, params={"originator": src, "language": alternative_country_code})
+					if(str(key).encode() in keys):
+						redis.lrem("sms_keys", 0, key)
+					sendLog("From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text) + " type > call", True)
+					return call_obj
+				except messagebird.ErrorException:
+					return False
+			else:
+				try:
+					print("Debug on: " + "From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text))
+					call_client_testkey = messagebird.Client(message_testkey)
+					call_obj = call_client_testkey.voice_message_create([dst], text, params={"originator": src, "language": alternative_country_code})
+					sendLog("From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text) + " type > call", True)
+					return call_obj
+				except messagebird.ErrorException:
+					return False
+		else:
+			time.sleep(1)
+			sendLog(f"Tried to use key that does not exist ({key})", True)
+			return "Key does not exist or is already used."
+
 	def send_message(src:str, dst:str, text:str, key:str):
 		if(isInt(src)):
 			src=fix_number(src)
@@ -146,14 +209,11 @@ else:
 				redis.set("receipt", "")
 				if(DEBUG==False):
 					message = client.send_message({'from': src,'to': dst,'text': text,'type': 'unicode'})
-					sendLog("From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text), True)
+					sendLog("From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text) + " type > message", True)
 					if(key != None and message["messages"][0]["status"] == "0"):
 						redis.lrem("sms_keys", 0, key)
 				else:
-					print("Key does not exist! But continued because of debug mode.")
 					print("Debug on: " + "From > " + str(src) + " to > "+ str(dst)[2:] + " key > " + str(key) +" text > " + str(text))
-					if(key != None):
-						redis.lrem("sms_keys", 0, key)
 					redis.set("receipt", r"{'msisdn': '" + dst + r"', 'to': '" + src[:11] + r"', 'network-code': 'DEBUG', 'messageId': 'DEBUG', 'price': '0', 'status': 'DEBUG', 'scts': 'DEBUG', 'err-code': 'DEBUG', 'api-key': '0', 'message-timestamp': '1900-01-01 00:00:00'}")
 				return True
 			except Exception as e:
@@ -178,37 +238,50 @@ else:
 		if(request.method == "POST"):
 			src = request.form.get('src')
 			dst = request.form.get('dst')
-			key = request.form.get('key')
 			text = request.form.get('text')
-			message = send_message(src,dst,text,key)
-			if(message == True):
-				return render_template("receipt.html", data=listen_receipts(), admin=False, key=key)
+			key = request.form.get('key')
+			callbox = request.form.get("callbox")
+			if(callbox):
+				message = send_call(src,dst,text,key)
+				if(type(message) is messagebird.voicemessage.VoiceMessage):
+					return render_template("receipt.html", data=message, admin=False, key=key, mbird=True)
+				else:
+					return render_template("showtext.html", title="Error",text=message)
 			else:
-				return render_template("showtext.html", title="Error",text=message)
-		return render_template("index.html")	
+				message = send_message(src,dst,text,key)
+				if(message == True):
+					return render_template("receipt.html", data=listen_receipts(), admin=False, key=key, mbird=False)
+				else:
+					return render_template("showtext.html", title="Error",text=message)
+		return render_template("index.html")
 	@app.route('/admin/sms', methods=['GET', 'POST'])
 	@auth.login_required
-	def sms():
+	def admin_sms():
 		if(request.method == "POST"):
 			src = request.form.get('src')
 			dst = request.form.get('dst')
 			text = request.form.get('text')
-			message = send_message(src,dst,text,None)
-			if(message == True):
-				return render_template("receipt.html", data=listen_receipts(), admin=True, key=None)
-			else:	
-				return render_template("showtext.html", title="Error",text=message)
+			callbox = request.form.get("callbox")
+			if(callbox):
+				message = send_call(src,dst,text,None)
+				if(type(message) is messagebird.voicemessage.VoiceMessage):
+					return render_template("receipt.html", data=message, admin=True, key=None, mbird=True)
+				else:
+					return render_template("showtext.html", title="Error",text=message)
+			else:
+				message = send_message(src,dst,text,None)
+				if(message == True):
+					return render_template("receipt.html", data=listen_receipts(), admin=True, key=None, mbird=False)
+				else:
+					return render_template("showtext.html", title="Error",text=message)
 		return render_template("index.html", admin=True)
-	@app.route('/admin/call', methods=['GET', 'POST'])
-	@auth.login_required
-	def call():
-		return render_template("showtext.html", title="Error",text="Page under construction!") 
 
 
 	@app.route('/admin', methods=['GET','POST'])
 	@auth.login_required	
 	def admin_panel():
-		result = client.get_balance()
+		balance = client.get_balance()
+		mbird_balance = call_client.balance()
 		if(request.method == "POST"):
 			reciever = fix_number(request.form.get('reciever'))
 			key = genkey(random.randint(4,16))
@@ -232,12 +305,12 @@ else:
 				redis.set("receipt", "")
 				message = client.send_message({'from': "SMSService",'to': reciever,'text': message})
 				sendLog(f"Generated 1 key for {reciever} ({key})", True)
-				return render_template("receipt.html", data=listen_receipts(), admin=True, key=key)
+				return render_template("receipt.html", data=listen_receipts(), admin=True, key=key, mbrid=False)
 			except Exception as e:
 				print("Error! " + str(e))
 				traceback.print_exc()
 				return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
-		return render_template("admin_panel.html", balance=f"{result['value']:0.2f} EUR", sms_left=str(math.floor(float(f"{result['value']:0.2f}")/0.0221)))
+		return render_template("admin_panel.html", balance=f"{balance['value']:0.2f} EUR", sms_left=str(math.floor(float(f"{balance['value']:0.2f}")/0.0221)), mbalance=f"{float(mbird_balance.amount):0.2f} EUR", calls_left=str(math.floor(float(f"{float(mbird_balance.amount):0.2f}")/0.014)))
 	@app.route('/admin/sms_keys', methods=['GET', 'POST'])
 	@auth.login_required
 	def sms_keys():

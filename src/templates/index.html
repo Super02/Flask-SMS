@@ -18,26 +18,31 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text"><i class="fa fa-phone" aria-hidden="true"></i></span>
                     </div>
-                <input type="text" class="form-control" placeholder="Source" name="src" aria-label="Source" aria-describedby="addon-wrapping">
+                <input type="text" class="form-control" placeholder="Source" name="src" aria-label="Source" aria-describedby="addon-wrapping" required>
               </div>
               <div class="input-group flex-nowrap">
               <div class="input-group-prepend">
                     <span class="input-group-text"><i class="fa fa-phone-square" aria-hidden="true"></i></span>
                     </div>
-                <input type="text" class="form-control" placeholder="Destination" name="dst" aria-label="Source" aria-describedby="addon-wrapping">
+                <input type="text" class="form-control" placeholder="Destination" name="dst" aria-label="Source" aria-describedby="addon-wrapping" required>
               </div>
 			{% if not admin %}
 			<div class="form-group">
 				<label id="key-text">Key: </label>
-				<input type="text" class="form-control" name="key" placeholder="Insert key" />
+				<input type="text" class="form-control" name="key" placeholder="Insert key" required />
 			</div>
 			{% endif %}
 			<div class="form-group">
 				<label id="body-text">Message Body: </label>
-				<textarea name="text" class="form-control" placeholder="Message"></textarea>
+				<textarea name="text" class="form-control" placeholder="Message" required></textarea>
 			</div>
 
 			<button type="submit" class="btn btn-primary" id="button-main">Submit</button>
+			<div class="form-group">
+				<div class="custom-control custom-switch">
+					<input type="checkbox" class="custom-control-input" id="SMSorCall" name="callbox">
+					<label class="custom-control-label" for="SMSorCall">Call</label>
+				</div>
 		</form>
 	</div>
 	<center><button type="submit" class="btn btn-primary" onclick="window.location.href = '/tos';">ToS</button></center>
