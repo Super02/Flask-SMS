@@ -11,6 +11,8 @@ admin_pass="Admin Password for Admin Site"
 key="Nexmo key"
 secret"Nexmo secret
 logkey="LogDNA key"
+mbird_testkey="MessageBird testkey" #Not required
+messagebirdkey="MessageBird key"
 ```
 ### Usage
 ![Index](https://raw.githubusercontent.com/Super02/Flask-SMS/master/images/index.jpg)
