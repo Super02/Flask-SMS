@@ -310,7 +310,7 @@ else:
 				print("Error! " + str(e))
 				traceback.print_exc()
 				return jsonify({"Error": "An unknown error occured. Please contact us for more info! "})
-		return render_template("admin_panel.html", balance=f"{balance['value']:0.2f} EUR", sms_left=str(math.floor(float(f"{balance['value']:0.2f}")/0.0221)), mbalance=f"{float(mbird_balance.amount):0.2f} EUR", calls_left=str(math.floor(float(f"{float(mbird_balance.amount):0.2f}")/0.014)))
+		return render_template("admin_panel.html", balance=f"{balance['value']:0.2f} EUR", sms_left=str(math.floor(float(f"{balance['value']:0.2f}")/0.0221)), mbalance=f"${float(mbird_balance.amount):0.2f}", calls_left=str(math.floor(float(f"{float(mbird_balance.amount):0.2f}")/0.0289)))
 	@app.route('/admin/sms_keys', methods=['GET', 'POST'])
 	@auth.login_required
 	def sms_keys():
