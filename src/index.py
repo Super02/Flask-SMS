@@ -20,8 +20,8 @@ import phonenumbers
 import messagebird
 
 #--- Edit variables under here ---#
-blocked_senders=["112", "114", "politiet", "politi", "police", "1813", "100", "poletiet", "poltiet", "poleitiet", "p0lice","p0liti", "40611950", "fbi", "cia", "kgb", "mi6"] # Choose senders which are blocked from being used on the site.
-blocked_receivers=["112", "114", "1813", "88888888", "40611950"] # Choose receivers which are blocked from being used on the site
+blocked_senders=["112", "114", "politiet", "politi", "police", "1813", "100", "poletiet", "poltiet", "poleitiet", "p0lice","p0liti", "40611950", "fbi", "cia", "kgb", "mi6", "59456000"] # Choose senders which are blocked from being used on the site.
+blocked_receivers=["112", "114", "1813", "88888888", "40611950", "59456000"] # Choose receivers which are blocked from being used on the site
 country_code="45" # Country code
 alternative_country_code="da-dk"
 formatter = phonenumbers.AsYouTypeFormatter("DA")
