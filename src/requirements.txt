@@ -7,7 +7,7 @@ Flask-HTTPAuth==3.3.0
 gunicorn==19.9.0
 idna==2.8
 itsdangerous==1.1.0
-Jinja2==2.10.3
+Jinja2==2.11.3
 lxml==4.6.2
 MarkupSafe==1.1.1
 plivo==4.3.2
