@@ -19,7 +19,6 @@ urllib3==1.25.6
 Werkzeug==0.16.0
 nexmo==2.4.0
 logdna==1.4.2
-pprint==0.1
 uuid==1.30
 phonenumbers==8.10.22
 messagebird==1.4.1
